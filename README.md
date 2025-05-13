@@ -89,4 +89,13 @@ npm run dev
 - Claude by Anthropic for AI assistance in development
 - All contributors who help make this tool better for everyone
 
+## Supporting CardStack
+
+CardStack is and will always remain free for the neurodivergent community. If you've found it helpful and want to support continued development, consider:
+
+- Not currently accepting donations, but if this gets some interest, perhaps that could change!
+- Spreading the word to others who might benefit
+
+All donations go toward development time, hosting costs, adding new features and improving accessibility features.
+
 Remember: Different brains need different tools. CardStack aims to be one of those tools for people who think differently.

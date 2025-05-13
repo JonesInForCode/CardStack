@@ -19,10 +19,6 @@ The choice of AGPL-3.0 ensures the code remains open while requiring all modific
 
 By using, modifying, or distributing CardStack, you acknowledge and respect this Statement of Intent.
 
----
+This project welcomes voluntary donations to support continued development, but will always remain freely available regardless of financial contribution. Donations do not confer any ownership, special rights, or obligations on either party.
 
-To apply this license to your project:
 
-1. Copy this content to a file named LICENSE.md in your project root
-2. Add this badge to your README.md: [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-3. Update your package.json: `"license": "AGPL-3.0-or-later"`

@@ -1,7 +1,7 @@
-// Updated postcss.config.js
+// Updated postcss.config.js to use @tailwindcss/postcss
 export default {
   plugins: {
-    tailwindcss: {}, // This should be 'tailwindcss' not '@tailwindcss/postcss'
+    '@tailwindcss/postcss': {},
     autoprefixer: {},
   },
 }

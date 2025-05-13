@@ -22,7 +22,6 @@ const App = () => {
     tasks,
     completedTasks,
     currentTask,
-    currentTaskIndex,
     isLoading,
     completeTask,
     dismissTask,

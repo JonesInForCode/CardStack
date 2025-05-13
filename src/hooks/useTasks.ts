@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { type Task, type PartialTask, type Priority, type Category, Priorities, Categories } from '../types/Task';
+import { type Task, type PartialTask, Priorities, Categories } from '../types/Task';
 import { loadTasks, loadCompletedTasks, saveTasks, saveCompletedTasks } from '../utils/storage';
 import { triggerHapticFeedback } from '../utils/haptics';
 

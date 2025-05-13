@@ -30,14 +30,6 @@ const initialTasks: Task[] = [
   },
   {
     id: '2',
-    title: 'Call mom',
-    description: "It's her birthday next week, call to make plans",
-    priority: 'medium',
-    category: 'personal',
-    isCompleted: false,
-  },
-  {
-    id: '3',
     title: 'Pick up prescription',
     description: 'At Walgreens on Main St.',
     priority: 'high',
@@ -45,7 +37,7 @@ const initialTasks: Task[] = [
     isCompleted: false,
   },
   {
-    id: '4',
+    id: '3',
     title: 'Schedule dentist appointment',
     description: 'Need cleaning and check-up',
     priority: 'low',

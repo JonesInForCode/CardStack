@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
 // Components
-import SplashScreen from './components/Splash/SplashScreen';
-import Header from './components/Header/Header';
-import Footer from './components/Footer/Footer';
-import TaskCard from './components/Card/TaskCard';
-import AddTaskModal from './components/Modals/AddTaskModal';
-import CompletedTasksDrawer from './components/Drawers/CompletedTasksDrawer';
+import SplashScreen from './components/Splash';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import TaskCard from './components/Card';
+import AddTaskModal from './components/Modals';
+import CompletedTasksDrawer from './components/Drawers';
 
 // Hooks
 import { useTasks } from './hooks/useTasks';

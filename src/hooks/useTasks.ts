@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { type Task, type PartialTask } from '../types/Task';
+import { useState, useEffect, useCallback } from 'react';
+import { type Task, type PartialTask, Priority, Category } from '../types/Task';
 import { loadTasks, loadCompletedTasks, saveTasks, saveCompletedTasks } from '../utils/storage';
+import { triggerHapticFeedback } from '../utils/haptics';
 
 // Sample tasks for demonstration
 const initialTasks: Task[] = [
@@ -8,8 +9,8 @@ const initialTasks: Task[] = [
     id: '1',
     title: 'Submit quarterly report',
     description: 'Finalize and email the Q1 progress report to the team',
-    priority: 'high',
-    category: 'work',
+    priority: Priority.HIGH,
+    category: Category.WORK,
     dueDate: new Date(Date.now() + 86400000), // Tomorrow
     isCompleted: false,
   },
@@ -17,24 +18,24 @@ const initialTasks: Task[] = [
     id: '2',
     title: 'Call mom',
     description: "It's her birthday next week, call to make plans",
-    priority: 'medium',
-    category: 'personal',
+    priority: Priority.MEDIUM,
+    category: Category.PERSONAL,
     isCompleted: false,
   },
   {
     id: '3',
     title: 'Pick up prescription',
     description: 'At Walgreens on Main St.',
-    priority: 'high',
-    category: 'errands',
+    priority: Priority.HIGH,
+    category: Category.ERRANDS,
     isCompleted: false,
   },
   {
     id: '4',
     title: 'Schedule dentist appointment',
     description: 'Need cleaning and check-up',
-    priority: 'low',
-    category: 'personal',
+    priority: Priority.LOW,
+    category: Category.PERSONAL,
     isCompleted: false,
   },
 ];
@@ -45,12 +46,25 @@ export const useTasks = () => {
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Get current task
+  const currentTask = tasks[currentTaskIndex];
 
   // Load tasks from localStorage on initial render
   useEffect(() => {
-    setTasks(loadTasks(initialTasks));
-    setCompletedTasks(loadCompletedTasks());
-    setIsLoaded(true);
+    try {
+      setTasks(loadTasks(initialTasks));
+      setCompletedTasks(loadCompletedTasks());
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+      // Fallback to initial tasks if loading fails
+      setTasks(initialTasks);
+      setCompletedTasks([]);
+    } finally {
+      setIsLoaded(true);
+      setIsLoading(false);
+    }
   }, []);
 
   // Save tasks to localStorage whenever they change
@@ -87,104 +101,111 @@ export const useTasks = () => {
     }
   }, [tasks]);
 
-  // Get current task
-  const currentTask = tasks[currentTaskIndex];
-
-  // Handle task completion
-  const completeTask = () => {
+  // Handle task completion - Memoized with useCallback
+  const completeTask = useCallback(() => {
     if (!currentTask) return;
     
-    // Add haptic feedback if available
-    if (navigator.vibrate) {
-      navigator.vibrate(100);
-    }
+    // Add haptic feedback
+    triggerHapticFeedback('complete');
     
     const updatedTask = { ...currentTask, isCompleted: true, completedDate: new Date() };
-    setCompletedTasks([updatedTask, ...completedTasks]);
+    setCompletedTasks(prevCompletedTasks => [updatedTask, ...prevCompletedTasks]);
     
-    const updatedTasks = tasks.filter(task => task.id !== currentTask.id);
-    setTasks(updatedTasks);
+    setTasks(prevTasks => {
+      const updatedTasks = prevTasks.filter(task => task.id !== currentTask.id);
+      return updatedTasks;
+    });
     
-    if (currentTaskIndex >= updatedTasks.length) {
-      setCurrentTaskIndex(Math.max(0, updatedTasks.length - 1));
-    }
-  };
+    setCurrentTaskIndex(prevIndex => {
+      const updatedTasks = tasks.filter(task => task.id !== currentTask.id);
+      return Math.max(0, Math.min(prevIndex, updatedTasks.length - 1));
+    });
+  }, [currentTask, tasks]);
 
-  // Handle task dismissal (send to bottom of stack)
-  const dismissTask = () => {
+  // Handle task dismissal (send to bottom of stack) - Memoized with useCallback
+  const dismissTask = useCallback(() => {
     if (!currentTask || tasks.length <= 1) return;
     
-    // Add haptic feedback if available
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
+    // Add haptic feedback
+    triggerHapticFeedback('dismiss');
     
-    const updatedTasks = [...tasks];
-    updatedTasks.push(updatedTasks.splice(currentTaskIndex, 1)[0]);
-    setTasks(updatedTasks);
+    setTasks(prevTasks => {
+      const updatedTasks = [...prevTasks];
+      updatedTasks.push(updatedTasks.splice(currentTaskIndex, 1)[0]);
+      return updatedTasks;
+    });
     
-    if (currentTaskIndex >= updatedTasks.length - 1) {
-      setCurrentTaskIndex(0);
-    }
-  };
+    setCurrentTaskIndex(prevIndex => {
+      if (prevIndex >= tasks.length - 1) {
+        return 0;
+      }
+      return prevIndex;
+    });
+  }, [currentTask, currentTaskIndex, tasks.length]);
 
-  // Handle task snoozing
-  const snoozeTask = (hours: number) => {
+  // Handle task snoozing - Memoized with useCallback
+  const snoozeTask = useCallback((hours: number) => {
     if (!currentTask) return;
     
-    // Add haptic feedback if available
-    if (navigator.vibrate) {
-      navigator.vibrate(30);
-    }
+    // Add haptic feedback
+    triggerHapticFeedback('snooze');
     
     const snoozedUntil = new Date();
     snoozedUntil.setHours(snoozedUntil.getHours() + hours);
     
     const updatedTask = { ...currentTask, snoozedUntil };
     
-    const updatedTasks = [...tasks];
-    updatedTasks.splice(currentTaskIndex, 1);
-    updatedTasks.push(updatedTask);
+    setTasks(prevTasks => {
+      const updatedTasks = [...prevTasks];
+      updatedTasks.splice(currentTaskIndex, 1);
+      updatedTasks.push(updatedTask);
+      return updatedTasks;
+    });
     
-    setTasks(updatedTasks);
-    
-    if (currentTaskIndex >= updatedTasks.length - 1) {
-      setCurrentTaskIndex(0);
-    }
-  };
+    setCurrentTaskIndex(prevIndex => {
+      if (prevIndex >= tasks.length - 1) {
+        return 0;
+      }
+      return prevIndex;
+    });
+  }, [currentTask, currentTaskIndex, tasks.length]);
 
-  // Add a new task
-  const addTask = (newTask: PartialTask) => {
+  // Add a new task - Memoized with useCallback
+  const addTask = useCallback((newTask: PartialTask) => {
     if (!newTask.title) return;
     
     const task: Task = {
       id: Date.now().toString(),
       title: newTask.title || '',
       description: newTask.description || '',
-      priority: newTask.priority || 'medium',
-      category: newTask.category || 'personal',
+      priority: newTask.priority || Priority.MEDIUM,
+      category: newTask.category || Category.PERSONAL,
       isCompleted: false,
       dueDate: newTask.dueDate,
     };
     
-    setTasks([...tasks, task]);
-  };
+    setTasks(prevTasks => [...prevTasks, task]);
+  }, []);
 
-  // Return a completed task to the stack
-  const returnToStack = (taskId: string) => {
+  // Return a completed task to the stack - Memoized with useCallback
+  const returnToStack = useCallback((taskId: string) => {
     const task = completedTasks.find(t => t.id === taskId);
     if (!task) return;
     
     const updatedTask = { ...task, isCompleted: false, completedDate: undefined };
-    setTasks([...tasks, updatedTask]);
-    setCompletedTasks(completedTasks.filter(t => t.id !== taskId));
-  };
+    
+    setTasks(prevTasks => [...prevTasks, updatedTask]);
+    setCompletedTasks(prevCompletedTasks => 
+      prevCompletedTasks.filter(t => t.id !== taskId)
+    );
+  }, [completedTasks]);
 
   return {
     tasks,
     completedTasks,
     currentTask,
     currentTaskIndex,
+    isLoading,
     setCurrentTaskIndex,
     completeTask,
     dismissTask,

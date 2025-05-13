@@ -1,6 +1,7 @@
 # CardStack: Task Management for Neurodivergent Minds
 
 ![CardStack Logo](public/cardstack-logo.png)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 CardStack is a task management application specifically designed for people with ADHD and ASD (Autism Spectrum Disorder). Unlike conventional to-do list apps, CardStack presents one task at a time as a full-screen card that demands attention and decision, with dismissed tasks circling back around for future consideration.
 

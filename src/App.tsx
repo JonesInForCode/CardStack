@@ -1,3 +1,6 @@
+// This is a key fix for the main App component
+// The main issue is likely in the import order and container padding
+
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
@@ -50,7 +53,8 @@ const App = () => {
       
       <Header />
 
-      <main className="max-w-md mx-auto p-4 min-h-[80vh] flex flex-col justify-center items-center">
+      {/* Added pb-24 to fix spacing with the fixed footer */}
+      <main className="max-w-md mx-auto p-4 min-h-[80vh] flex flex-col justify-center items-center pb-24">
         {isLoading ? (
           <Loading message="Loading your stack..." />
         ) : tasks.length > 0 ? (

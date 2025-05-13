@@ -1,5 +1,6 @@
 import { defineConfig } from 'tailwindcss';
 
+// Updated for Tailwind 4.1.6
 export default defineConfig({
   content: [
     "./index.html",

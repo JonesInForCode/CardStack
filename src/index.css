@@ -1,3 +1,4 @@
+/* src/index.css - ensure Tailwind directives are at the top */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

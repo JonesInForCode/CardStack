@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { type Task, type PartialTask, Priority, Category } from '../types/Task';
+import { type Task, type PartialTask, type Priority, type Category, Priorities, Categories } from '../types/Task';
 import { loadTasks, loadCompletedTasks, saveTasks, saveCompletedTasks } from '../utils/storage';
 import { triggerHapticFeedback } from '../utils/haptics';
 
@@ -9,8 +9,8 @@ const initialTasks: Task[] = [
     id: '1',
     title: 'Submit quarterly report',
     description: 'Finalize and email the Q1 progress report to the team',
-    priority: Priority.HIGH,
-    category: Category.WORK,
+    priority: Priorities.HIGH,
+    category: Categories.WORK,
     dueDate: new Date(Date.now() + 86400000), // Tomorrow
     isCompleted: false,
   },
@@ -18,24 +18,24 @@ const initialTasks: Task[] = [
     id: '2',
     title: 'Call mom',
     description: "It's her birthday next week, call to make plans",
-    priority: Priority.MEDIUM,
-    category: Category.PERSONAL,
+    priority: Priorities.MEDIUM,
+    category: Categories.PERSONAL,
     isCompleted: false,
   },
   {
     id: '3',
     title: 'Pick up prescription',
     description: 'At Walgreens on Main St.',
-    priority: Priority.HIGH,
-    category: Category.ERRANDS,
+    priority: Priorities.HIGH,
+    category: Categories.ERRANDS,
     isCompleted: false,
   },
   {
     id: '4',
     title: 'Schedule dentist appointment',
     description: 'Need cleaning and check-up',
-    priority: Priority.LOW,
-    category: Category.PERSONAL,
+    priority: Priorities.LOW,
+    category: Categories.PERSONAL,
     isCompleted: false,
   },
 ];
@@ -178,8 +178,8 @@ export const useTasks = () => {
       id: Date.now().toString(),
       title: newTask.title || '',
       description: newTask.description || '',
-      priority: newTask.priority || Priority.MEDIUM,
-      category: newTask.category || Category.PERSONAL,
+      priority: newTask.priority || Priorities.MEDIUM,
+      category: newTask.category || Categories.PERSONAL,
       isCompleted: false,
       dueDate: newTask.dueDate,
     };

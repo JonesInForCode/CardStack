@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import TaskCard from './components/Card';
 import AddTaskModal from './components/Modals';
 import CompletedTasksDrawer from './components/Drawers';
+import Loading from './components/Loading';
 
 // Hooks
 import { useTasks } from './hooks/useTasks';
@@ -22,6 +23,7 @@ const App = () => {
     completedTasks,
     currentTask,
     currentTaskIndex,
+    isLoading,
     completeTask,
     dismissTask,
     snoozeTask,
@@ -50,7 +52,9 @@ const App = () => {
       <Header />
 
       <main className="max-w-md mx-auto p-4 min-h-[80vh] flex flex-col justify-center items-center">
-        {tasks.length > 0 ? (
+        {isLoading ? (
+          <Loading message="Loading your stack..." />
+        ) : tasks.length > 0 ? (
           <AnimatePresence mode="wait">
             {currentTask && (
               <TaskCard 

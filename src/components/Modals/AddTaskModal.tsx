@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { type PartialTask, type Priority, type Category } from '../../types/Task';
+import { type PartialTask, type Priority, type Category, Priorities, Categories } from '../../types/Task';
 
 interface AddTaskModalProps {
   onClose: () => void;
@@ -11,8 +11,8 @@ const AddTaskModal = ({ onClose, onAddTask }: AddTaskModalProps) => {
   const [newTask, setNewTask] = useState<PartialTask>({
     title: '',
     description: '',
-    priority: 'medium',
-    category: 'personal',
+    priority: Priorities.MEDIUM,
+    category: Categories.PERSONAL,
     isCompleted: false,
   });
 
@@ -23,8 +23,8 @@ const AddTaskModal = ({ onClose, onAddTask }: AddTaskModalProps) => {
     setNewTask({
       title: '',
       description: '',
-      priority: 'medium',
-      category: 'personal',
+      priority: Priorities.MEDIUM,
+      category: Categories.PERSONAL,
       isCompleted: false,
     });
     onClose();
@@ -80,9 +80,9 @@ const AddTaskModal = ({ onClose, onAddTask }: AddTaskModalProps) => {
               onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as Priority })}
               className="w-full p-2 border rounded-lg"
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+              <option value={Priorities.LOW}>Low</option>
+              <option value={Priorities.MEDIUM}>Medium</option>
+              <option value={Priorities.HIGH}>High</option>
             </select>
           </div>
           <div>
@@ -94,10 +94,10 @@ const AddTaskModal = ({ onClose, onAddTask }: AddTaskModalProps) => {
               onChange={(e) => setNewTask({ ...newTask, category: e.target.value as Category })}
               className="w-full p-2 border rounded-lg"
             >
-              <option value="work">Work</option>
-              <option value="personal">Personal</option>
-              <option value="errands">Errands</option>
-              <option value="other">Other</option>
+              <option value={Categories.WORK}>Work</option>
+              <option value={Categories.PERSONAL}>Personal</option>
+              <option value={Categories.ERRANDS}>Errands</option>
+              <option value={Categories.OTHER}>Other</option>
             </select>
           </div>
         </div>

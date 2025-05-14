@@ -1,7 +1,7 @@
-// Updated postcss.config.js to use @tailwindcss/postcss
+// postcss.config.js - Use the correct 2025 package
 export default {
   plugins: {
-    '@tailwindcss/postcss': {},
-    autoprefixer: {},
+    '@tailwindcss/postcss': {}, // The correct package for Tailwind 4.x
+    'autoprefixer': {},
   },
 }

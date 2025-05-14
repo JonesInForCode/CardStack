@@ -1,18 +1,19 @@
-// Updated main.tsx to properly import styles
+// src/main.tsx with styled-components ThemeProvider
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ThemeProvider } from 'styled-components'
 import ErrorBoundary from './components/ErrorBoundary'
-
-// Import global styles first to ensure they're applied
-import './index.css'
-
-// Import App after styles
 import App from './App.tsx'
+import theme from './styles/theme'
+import GlobalStyle from './styles/global'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <ThemeProvider theme={theme}>
+      <GlobalStyle />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </ThemeProvider>
   </StrictMode>,
 )

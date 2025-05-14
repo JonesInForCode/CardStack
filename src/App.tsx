@@ -10,6 +10,7 @@ import TaskCard from './components/Card';
 import AddTaskModal from './components/Modals';
 import { CompletedTasksDrawer, SnoozedTasksDrawer } from './components/Drawers';
 import Loading from './components/Loading';
+import PWAInstall from './components/PWAInstall';
 
 // Hooks
 import { useTasks } from './hooks/useTasks';
@@ -197,6 +198,9 @@ const App = () => {
         onToggleSnoozedTasks={() => setShowSnoozedTasks(!showSnoozedTasks)}
         showSnoozedTasks={showSnoozedTasks}
       />
+
+      {/* Add PWA Install Prompt */}
+      <PWAInstall />
 
       {/* Modals */}
       <AnimatePresence>

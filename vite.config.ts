@@ -1,4 +1,4 @@
-// Simple, cleaned vite.config.ts without Tailwind references
+// vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 

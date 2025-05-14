@@ -1,4 +1,4 @@
-// src/main.tsx with styled-components ThemeProvider
+// src/main.tsx - Remove Tailwind imports and update for styled-components only
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from 'styled-components'

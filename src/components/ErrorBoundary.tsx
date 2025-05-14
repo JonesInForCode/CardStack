@@ -1,4 +1,6 @@
+// src/components/ErrorBoundary.tsx
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import styled from 'styled-components';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -9,6 +11,51 @@ interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
+
+// Styled components
+const ErrorContainer = styled.div`
+  padding: ${({ theme }) => theme.spacing.lg};
+  margin: ${({ theme }) => theme.spacing.lg};
+  background-color: #FEF2F2;
+  border: 1px solid #FEE2E2;
+  border-radius: ${({ theme }) => theme.borderRadius.xl};
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+`;
+
+const ErrorTitle = styled.h2`
+  font-size: ${({ theme }) => theme.typography.fontSizes.xl};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
+  color: #B91C1C;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const ErrorMessage = styled.p`
+  color: #EF4444;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+const ErrorDetails = styled.div`
+  padding: ${({ theme }) => theme.spacing.md};
+  background-color: white;
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  font-family: monospace;
+  color: #6B7280;
+  overflow: auto;
+`;
+
+const RefreshButton = styled.button`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  background-color: #DC2626;
+  color: white;
+  font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  
+  &:hover {
+    background-color: #B91C1C;
+  }
+`;
 
 /**
  * Error Boundary component to catch JavaScript errors in child components
@@ -40,21 +87,18 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return this.props.fallback || (
-        <div className="p-6 mx-4 my-8 bg-red-50 border border-red-200 rounded-xl shadow-md">
-          <h2 className="text-xl font-bold text-red-700 mb-2">Something went wrong</h2>
-          <p className="text-red-600 mb-4">The app encountered an error</p>
+        <ErrorContainer>
+          <ErrorTitle>Something went wrong</ErrorTitle>
+          <ErrorMessage>The app encountered an error</ErrorMessage>
           {this.state.error && (
-            <div className="p-3 bg-white rounded-lg text-sm text-gray-700 font-mono overflow-auto">
+            <ErrorDetails>
               {this.state.error.toString()}
-            </div>
+            </ErrorDetails>
           )}
-          <button
-            className="mt-4 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700"
-            onClick={() => window.location.reload()}
-          >
+          <RefreshButton onClick={() => window.location.reload()}>
             Refresh Page
-          </button>
-        </div>
+          </RefreshButton>
+        </ErrorContainer>
       );
     }
 

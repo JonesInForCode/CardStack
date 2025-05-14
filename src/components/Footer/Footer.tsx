@@ -16,7 +16,7 @@ const FooterContainer = styled.footer`
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.cardBackground};
   padding: ${({ theme }) => theme.spacing.md};
   display: flex;
   justify-content: space-between;
@@ -46,8 +46,7 @@ const CompletedTasksButton = styled(motion.button)`
 
 const SnoozedTasksButton = styled(motion.button)<{ hasSnoozed: boolean }>`
   padding: ${({ theme }) => theme.spacing.md};
-  background-color: ${({ hasSnoozed, theme }) => 
-    hasSnoozed ? theme.colors.primaryDark : theme.colors.primaryDark};
+  background-color: ${({ theme }) => theme.colors.primaryDark};
   color: white;
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   border-radius: ${({ theme }) => theme.borderRadius.large};

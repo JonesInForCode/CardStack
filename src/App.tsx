@@ -91,6 +91,7 @@ const App = () => {
     unsnoozeTask,
     addTask,
     returnToStack,
+    deleteCompletedTask, // New function from useTasks hook
     shuffleDeck,
   } = useTasks();
 
@@ -216,6 +217,7 @@ const App = () => {
             completedTasks={completedTasks}
             onClose={() => setShowCompletedTasks(false)}
             onReturnToStack={returnToStack}
+            onDeleteTask={deleteCompletedTask} // Pass the new delete function
           />
         )}
         

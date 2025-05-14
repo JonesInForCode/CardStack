@@ -7,6 +7,7 @@ interface CompletedTasksDrawerProps {
   completedTasks: Task[];
   onClose: () => void;
   onReturnToStack: (taskId: string) => void;
+  onDeleteTask: (taskId: string) => void; // New prop for delete function
 }
 
 // Styled components
@@ -56,7 +57,9 @@ const TaskItem = styled.div`
   align-items: center;
 `;
 
-const TaskInfo = styled.div``;
+const TaskInfo = styled.div`
+  flex: 1;
+`;
 
 const TaskTitle = styled.h3`
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
@@ -69,9 +72,22 @@ const TaskDate = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
+const ActionButtons = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
 const ReturnButton = styled(motion.button)`
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   background-color: ${({ theme }) => theme.colors.primaryDark};
+  color: white;
+  padding: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+`;
+
+const DeleteButton = styled(motion.button)`
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  background-color: ${({ theme }) => theme.colors.danger};
   color: white;
   padding: ${({ theme }) => theme.spacing.sm};
   border-radius: ${({ theme }) => theme.borderRadius.large};
@@ -84,7 +100,7 @@ const CloseButtonContainer = styled.div`
 `;
 
 const CloseButton = styled(motion.button)`
-  padding: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.md};
   background-color: ${({ theme }) => theme.colors.primaryDark};
   color: white;
   border-radius: ${({ theme }) => theme.borderRadius.large};
@@ -93,7 +109,8 @@ const CloseButton = styled(motion.button)`
 const CompletedTasksDrawer = ({ 
   completedTasks, 
   onClose, 
-  onReturnToStack 
+  onReturnToStack,
+  onDeleteTask
 }: CompletedTasksDrawerProps) => {
   return (
     <DrawerContainer
@@ -116,12 +133,22 @@ const CompletedTasksDrawer = ({
                   Completed: {task.completedDate?.toLocaleDateString()}
                 </TaskDate>
               </TaskInfo>
-              <ReturnButton
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onReturnToStack(task.id)}
-              >
-                Return to Stack
-              </ReturnButton>
+              <ActionButtons>
+                <DeleteButton
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => onDeleteTask(task.id)}
+                  aria-label={`Delete task ${task.title}`}
+                >
+                  Delete
+                </DeleteButton>
+                <ReturnButton
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => onReturnToStack(task.id)}
+                  aria-label={`Return task ${task.title} to stack`}
+                >
+                  Return
+                </ReturnButton>
+              </ActionButtons>
             </TaskItem>
           ))}
         </TasksContainer>

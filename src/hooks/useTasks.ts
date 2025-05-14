@@ -249,6 +249,17 @@ export const useTasks = () => {
     );
   }, [completedTasks]);
 
+  // Delete a completed task - New function added for deleting completed tasks
+  const deleteCompletedTask = useCallback((taskId: string) => {
+    // Add haptic feedback for delete
+    triggerHapticFeedback('dismiss');
+    
+    // Remove the task from completedTasks
+    setCompletedTasks(prevCompletedTasks => 
+      prevCompletedTasks.filter(task => task.id !== taskId)
+    );
+  }, []);
+
   // Shuffle the task deck - Fisher-Yates algorithm
   const shuffleDeck = useCallback(() => {
     if (tasks.length <= 1) return; // No need to shuffle 0 or 1 tasks
@@ -307,9 +318,10 @@ export const useTasks = () => {
     completeTask,
     dismissTask,
     snoozeTask,
-    unsnoozeTask, // Add the new function
+    unsnoozeTask,
     addTask,
     returnToStack,
+    deleteCompletedTask, // Add the new function to the return object
     shuffleDeck,
   };
 };

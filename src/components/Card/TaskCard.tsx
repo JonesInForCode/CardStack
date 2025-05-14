@@ -1,4 +1,4 @@
-// src/components/Card/TaskCard.tsx with Styled Components
+// src/components/Card/TaskCard.tsx
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task, type Priority, type Category } from '../../types/Task';
@@ -42,6 +42,12 @@ const getCategoryEmoji = (category: Category): string => {
 };
 
 // Styled components
+const CardWrapper = styled.div`
+  width: 100%;
+  max-width: 400px; // Added max-width constraint
+  margin: 0 auto;
+`;
+
 const CardContainer = styled(motion.div)<{ priority: Priority }>`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.lg};
@@ -143,70 +149,72 @@ const TaskCard = ({
   onSnooze 
 }: TaskCardProps) => {
   return (
-    <CardContainer
-      priority={task.priority}
-      key={task.id}
-      initial={{ opacity: 0, y: 50, scale: 0.8 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -50, scale: 0.8 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-    >
-      <CardHeader>
-        <CategoryEmoji>{getCategoryEmoji(task.category)}</CategoryEmoji>
-        <PriorityLabel priority={task.priority}>
-          {task.priority} priority
-        </PriorityLabel>
-      </CardHeader>
-      
-      <CardTitle>{task.title}</CardTitle>
-      <CardDescription>{task.description}</CardDescription>
-      
-      {task.dueDate && (
-        <DueDate>
-          Due: {task.dueDate.toLocaleDateString()}
-        </DueDate>
-      )}
-      
-      <ActionButtonsGrid>
-        <CompleteButton
-          whileTap={{ scale: 0.95 }}
-          onClick={onComplete}
-        >
-          Complete
-        </CompleteButton>
-        <DismissButton
-          whileTap={{ scale: 0.95 }}
-          onClick={onDismiss}
-        >
-          Dismiss
-        </DismissButton>
-      </ActionButtonsGrid>
-      
-      <SnoozeButtonsGrid>
-        <SnoozeButton
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onSnooze(1)}
-        >
-          +1 hour
-        </SnoozeButton>
-        <SnoozeButton
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onSnooze(3)}
-        >
-          +3 hours
-        </SnoozeButton>
-        <SnoozeButton
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onSnooze(24)}
-        >
-          Tomorrow
-        </SnoozeButton>
-      </SnoozeButtonsGrid>
-      
-      <TaskCount>
-        {taskCount} task{taskCount !== 1 ? 's' : ''} in your stack
-      </TaskCount>
-    </CardContainer>
+    <CardWrapper>
+      <CardContainer
+        priority={task.priority}
+        key={task.id}
+        initial={{ opacity: 0, y: 50, scale: 0.8 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -50, scale: 0.8 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      >
+        <CardHeader>
+          <CategoryEmoji>{getCategoryEmoji(task.category)}</CategoryEmoji>
+          <PriorityLabel priority={task.priority}>
+            {task.priority} priority
+          </PriorityLabel>
+        </CardHeader>
+        
+        <CardTitle>{task.title}</CardTitle>
+        <CardDescription>{task.description}</CardDescription>
+        
+        {task.dueDate && (
+          <DueDate>
+            Due: {task.dueDate.toLocaleDateString()}
+          </DueDate>
+        )}
+        
+        <ActionButtonsGrid>
+          <CompleteButton
+            whileTap={{ scale: 0.95 }}
+            onClick={onComplete}
+          >
+            Complete
+          </CompleteButton>
+          <DismissButton
+            whileTap={{ scale: 0.95 }}
+            onClick={onDismiss}
+          >
+            Dismiss
+          </DismissButton>
+        </ActionButtonsGrid>
+        
+        <SnoozeButtonsGrid>
+          <SnoozeButton
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onSnooze(1)}
+          >
+            +1 hour
+          </SnoozeButton>
+          <SnoozeButton
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onSnooze(3)}
+          >
+            +3 hours
+          </SnoozeButton>
+          <SnoozeButton
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onSnooze(24)}
+          >
+            Tomorrow
+          </SnoozeButton>
+        </SnoozeButtonsGrid>
+        
+        <TaskCount>
+          {taskCount} task{taskCount !== 1 ? 's' : ''} in your stack
+        </TaskCount>
+      </CardContainer>
+    </CardWrapper>
   );
 };
 

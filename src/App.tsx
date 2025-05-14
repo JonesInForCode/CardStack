@@ -1,8 +1,7 @@
-// This is a key fix for the main App component
-// The main issue is likely in the import order and container padding
-
+// src/App.tsx
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import styled from 'styled-components';
 
 // Components
 import SplashScreen from './components/Splash';
@@ -18,6 +17,54 @@ import { useTasks } from './hooks/useTasks';
 
 // Constants
 import { ANIMATION_DURATION } from './constants';
+
+// Styled components
+const AppContainer = styled.div`
+  position: relative;
+  min-height: 100vh;
+  background-color: ${({ theme }) => theme.colors.background};
+  overflow: hidden;
+`;
+
+const MainContent = styled.main`
+  max-width: 500px;
+  margin: 0 auto;
+  padding: ${({ theme }) => theme.spacing.md};
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 6rem; /* Space for fixed footer */
+`;
+
+const EmptyStateContainer = styled.div`
+  text-align: center;
+  padding: ${({ theme }) => theme.spacing.xl};
+  background-color: white;
+  border-radius: ${({ theme }) => theme.borderRadius.xl};
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+`;
+
+const EmptyStateTitle = styled.h2`
+  font-size: ${({ theme }) => theme.typography.fontSizes.xl};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const EmptyStateText = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+const AddTaskButton = styled.button`
+  padding: ${({ theme }) => theme.spacing.md};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  box-shadow: ${({ theme }) => theme.shadows.small};
+`;
 
 const App = () => {
   // Task-related state and functions from custom hook
@@ -48,13 +95,12 @@ const App = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-gray-100 overflow-hidden">
+    <AppContainer>
       {showSplash && <SplashScreen onAnimationComplete={() => setShowSplash(false)} />}
       
       <Header />
 
-      {/* Added pb-24 to fix spacing with the fixed footer */}
-      <main className="max-w-md mx-auto p-4 min-h-[80vh] flex flex-col justify-center items-center pb-24">
+      <MainContent>
         {isLoading ? (
           <Loading message="Loading your stack..." />
         ) : tasks.length > 0 ? (
@@ -71,18 +117,15 @@ const App = () => {
             )}
           </AnimatePresence>
         ) : (
-          <div className="text-center p-8 bg-white rounded-xl shadow-md">
-            <h2 className="text-xl font-bold mb-2">Your stack is empty!</h2>
-            <p className="text-gray-600 mb-4">Add a new task to get started.</p>
-            <button
-              className="p-3 bg-indigo-600 text-white font-semibold rounded-lg shadow"
-              onClick={() => setShowAddTask(true)}
-            >
+          <EmptyStateContainer>
+            <EmptyStateTitle>Your stack is empty!</EmptyStateTitle>
+            <EmptyStateText>Add a new task to get started.</EmptyStateText>
+            <AddTaskButton onClick={() => setShowAddTask(true)}>
               Add a task
-            </button>
-          </div>
+            </AddTaskButton>
+          </EmptyStateContainer>
         )}
-      </main>
+      </MainContent>
 
       <Footer 
         onAddTask={() => setShowAddTask(true)}
@@ -107,7 +150,7 @@ const App = () => {
           />
         )}
       </AnimatePresence>
-    </div>
+    </AppContainer>
   );
 };
 

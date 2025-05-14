@@ -1,41 +1,24 @@
 [build]
-  publish = "dist"
   command = "npm run build"
+  publish = "dist"
 
-# Serve assets first before redirecting to index.html
-[[redirects]]
-  from = "/assets/*"
-  to = "/assets/:splat"
-  status = 200
-  force = true
-
-# Handle routing for service worker
-[[redirects]]
-  from = "/service-worker.js"
-  to = "/service-worker.js"
-  status = 200
-  force = true
-
-# Redirect all other routes to index.html for SPA
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Proper headers for JavaScript modules
 [[headers]]
   for = "/assets/*.js"
   [headers.values]
     Content-Type = "application/javascript"
 
-# Cache control for service worker
 [[headers]]
   for = "/service-worker.js"
   [headers.values]
     Cache-Control = "max-age=0, no-cache, no-store, must-revalidate"
 
-# Cache control for manifest
 [[headers]]
   for = "/manifest.json"
   [headers.values]
     Cache-Control = "max-age=0, no-cache, no-store, must-revalidate"
+
+# This ensures proper routing for the single page application
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

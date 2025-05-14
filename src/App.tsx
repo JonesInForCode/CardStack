@@ -84,6 +84,7 @@ const App = () => {
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
+  const [simplifyMode, setSimplifyMode] = useState(false); // New state for "Don't Prioritize" feature
 
   // Handle shuffle with animation
   const handleShuffle = () => {
@@ -95,6 +96,11 @@ const App = () => {
       shuffleDeck();
       setIsShuffling(false);
     }, 300);
+  };
+
+  // Toggle simplify mode (don't prioritize)
+  const toggleSimplifyMode = () => {
+    setSimplifyMode(prev => !prev);
   };
 
   // Hide splash screen after a delay
@@ -110,10 +116,12 @@ const App = () => {
     <AppContainer>
       {showSplash && <SplashScreen onAnimationComplete={() => setShowSplash(false)} />}
       
-      {/* Updated Header with shuffle functionality */}
+      {/* Updated Header with shuffle functionality and simplify mode toggle */}
       <Header 
         onShuffle={handleShuffle}
         taskCount={tasks.length}
+        simplifyMode={simplifyMode}
+        onToggleSimplifyMode={toggleSimplifyMode}
       />
 
       <MainContent>
@@ -129,7 +137,8 @@ const App = () => {
                 onComplete={completeTask}
                 onDismiss={dismissTask}
                 onSnooze={snoozeTask}
-                isShuffling={isShuffling} // Pass shuffling state to card for animations
+                isShuffling={isShuffling}
+                simplifyMode={simplifyMode} // Pass simplify mode to card
               />
             )}
           </AnimatePresence>

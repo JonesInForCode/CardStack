@@ -9,7 +9,8 @@ interface TaskCardProps {
   onComplete: () => void;
   onDismiss: () => void;
   onSnooze: (hours: number) => void;
-  isShuffling?: boolean; // New prop for shuffle animation
+  isShuffling?: boolean;
+  simplifyMode?: boolean; // New prop for simplify mode
 }
 
 // Get color for priority level
@@ -24,6 +25,26 @@ const getPriorityColors = (priority: Priority) => {
     default:
       return { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' };
   }
+};
+
+// Simplified mode colors - gentle and easy on the eyes
+const simplifiedColors = [
+  { bg: '#F0F9FF', border: '#7DD3FC', text: '#0369A1' }, // Light blue
+  { bg: '#F0FDF4', border: '#86EFAC', text: '#166534' }, // Light green
+  { bg: '#FDF4FF', border: '#D8B4FE', text: '#7E22CE' }, // Light purple
+  { bg: '#FFF1F2', border: '#FDA4AF', text: '#BE123C' }, // Light pink
+  { bg: '#FFFBEB', border: '#FCD34D', text: '#A16207' }, // Light yellow
+  { bg: '#F7FEE7', border: '#BEF264', text: '#3F6212' }, // Light lime
+  { bg: '#F0FDFA', border: '#5EEAD4', text: '#0F766E' }, // Light teal
+  { bg: '#FEF2F2', border: '#FCA5A5', text: '#B91C1C' }  // Light red
+];
+
+// Get a consistent color based on task ID
+const getSimplifiedColor = (taskId: string) => {
+  // Extract numeric part from the task ID and sum the characters
+  const numericValue = taskId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const colorIndex = numericValue % simplifiedColors.length;
+  return simplifiedColors[colorIndex];
 };
 
 // Get emoji for category
@@ -43,14 +64,14 @@ const getCategoryEmoji = (category: Category): string => {
 };
 
 // Styled components
-const CardContainer = styled(motion.div)<{ priority: Priority }>`
+const CardContainer = styled(motion.div)<{ colorBg: string; colorBorder: string }>`
   width: 100%;
   max-width: 100%;
   padding: ${({ theme }) => theme.spacing.lg};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   box-shadow: ${({ theme }) => theme.shadows.large};
-  border-top: 8px solid ${({ priority }) => getPriorityColors(priority).border};
-  background-color: ${({ priority }) => getPriorityColors(priority).bg};
+  border-top: 8px solid ${({ colorBorder }) => colorBorder};
+  background-color: ${({ colorBg }) => colorBg};
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
@@ -65,12 +86,12 @@ const CategoryEmoji = styled.span`
   font-size: 2rem;
 `;
 
-const PriorityLabel = styled.span<{ priority: Priority }>`
+const PriorityLabel = styled.span<{ textColor: string }>`
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: ${({ priority }) => getPriorityColors(priority).text};
+  color: ${({ textColor }) => textColor};
 `;
 
 const CardTitle = styled.h2`
@@ -158,7 +179,8 @@ const TaskCard = ({
   onComplete, 
   onDismiss, 
   onSnooze,
-  isShuffling = false
+  isShuffling = false,
+  simplifyMode = false
 }: TaskCardProps) => {
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
@@ -177,9 +199,15 @@ const TaskCard = ({
     }
   };
 
+  // Determine which color scheme to use based on simplifyMode
+  const colors = simplifyMode 
+    ? getSimplifiedColor(task.id) 
+    : getPriorityColors(task.priority);
+
   return (
     <CardContainer
-      priority={task.priority}
+      colorBg={colors.bg}
+      colorBorder={colors.border}
       key={task.id}
       initial="initial"
       animate={isShuffling ? "shuffling" : "animate"}
@@ -189,9 +217,11 @@ const TaskCard = ({
     >
       <CardHeader>
         <CategoryEmoji>{getCategoryEmoji(task.category)}</CategoryEmoji>
-        <PriorityLabel priority={task.priority}>
-          {task.priority} priority
-        </PriorityLabel>
+        {!simplifyMode && (
+          <PriorityLabel textColor={colors.text}>
+            {task.priority} priority
+          </PriorityLabel>
+        )}
       </CardHeader>
       
       <CardTitle>{task.title}</CardTitle>

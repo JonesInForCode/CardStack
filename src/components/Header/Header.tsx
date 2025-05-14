@@ -5,6 +5,8 @@ import styled from 'styled-components';
 interface HeaderProps {
   onShuffle: () => void;
   taskCount: number;
+  simplifyMode: boolean;
+  onToggleSimplifyMode: () => void;
 }
 
 const HeaderContainer = styled.header`
@@ -31,6 +33,11 @@ const Subtitle = styled.p`
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
 const ShuffleButton = styled(motion.button)`
   background-color: ${({ theme }) => theme.colors.primaryDark};
   color: white;
@@ -48,6 +55,19 @@ const ShuffleButton = styled(motion.button)`
   }
 `;
 
+const SimplifyButton = styled(motion.button)<{ active: boolean }>`
+  background-color: ${({ theme, active }) => 
+    active ? theme.colors.success : theme.colors.primaryDark};
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: ${({ theme }) => theme.shadows.small};
+`;
+
 // Shuffle icon using SVG for better control
 const ShuffleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -61,23 +81,52 @@ const ShuffleIcon = () => (
   </svg>
 );
 
-const Header = ({ onShuffle, taskCount }: HeaderProps) => {
+// Simplify icon using SVG
+const SimplifyIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path 
+      d="M4 8H20M4 16H20" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const Header = ({ 
+  onShuffle, 
+  taskCount, 
+  simplifyMode, 
+  onToggleSimplifyMode 
+}: HeaderProps) => {
   return (
     <HeaderContainer>
       <TitleContainer>
         <Title>CardStack</Title>
         <Subtitle>Focus on one task at a time</Subtitle>
       </TitleContainer>
-      <ShuffleButton
-        whileTap={{ scale: 0.9, rotate: 180 }}
-        onClick={onShuffle}
-        disabled={taskCount <= 1}
-        title="Shuffle deck"
-        aria-label="Shuffle task deck"
-        transition={{ duration: 0.3 }}
-      >
-        <ShuffleIcon />
-      </ShuffleButton>
+      <ButtonContainer>
+        <SimplifyButton
+          whileTap={{ scale: 0.9 }}
+          onClick={onToggleSimplifyMode}
+          title={simplifyMode ? "Show priorities" : "Simplify view"}
+          aria-label={simplifyMode ? "Show priorities" : "Simplify view"}
+          active={simplifyMode}
+        >
+          <SimplifyIcon />
+        </SimplifyButton>
+        <ShuffleButton
+          whileTap={{ scale: 0.9, rotate: 180 }}
+          onClick={onShuffle}
+          disabled={taskCount <= 1}
+          title="Shuffle deck"
+          aria-label="Shuffle task deck"
+          transition={{ duration: 0.3 }}
+        >
+          <ShuffleIcon />
+        </ShuffleButton>
+      </ButtonContainer>
     </HeaderContainer>
   );
 };

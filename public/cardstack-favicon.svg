@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background card (bottom) -->
+  <rect x="8" y="16" width="48" height="40" rx="4" fill="#4338CA" transform="rotate(-6 32 32)" />
+  
+  <!-- Middle card -->
+  <rect x="12" y="12" width="44" height="40" rx="4" fill="#4F46E5" transform="rotate(-3 32 32)" />
+  
+  <!-- Top card -->
+  <rect x="16" y="8" width="40" height="40" rx="4" fill="#818CF8" transform="rotate(3 32 32)" />
+  
+  <!-- Card content (stylized checkmark) -->
+  <path d="M26 32 L32 38 L46 24" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+</svg>

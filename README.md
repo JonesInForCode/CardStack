@@ -5,6 +5,8 @@
 
 CardStack is a task management application specifically designed for people with ADHD and ASD (Autism Spectrum Disorder). Unlike conventional to-do list apps, CardStack presents one task at a time as a full-screen card that demands attention and decision, with dismissed tasks circling back around for future consideration.
 
+**Try it live: [cardstacktask.netlify.app](https://cardstacktask.netlify.app)**
+
 ## Purpose
 
 I created CardStack for myself as a person with ADHD and ASD who struggles with traditional task management systems. Standard to-do lists often lead to:
@@ -26,6 +28,9 @@ CardStack addresses these challenges by focusing on a key neurodivergent-friendl
 - **Simple, Bold Typography**: Reduces reading strain and increases focus
 - **Haptic Feedback**: Provides satisfying physical response to task actions
 - **Minimalist Design**: Reduces visual clutter and sensory overload
+- **Dark/Light Mode**: Adapts to visual sensitivity preferences
+- **PWA Support**: Install as a standalone app on mobile devices
+- **Shuffle Feature**: Mix up your tasks when you need a fresh perspective
 
 ## Development Approach
 
@@ -36,7 +41,7 @@ CardStack was "vibe coded" using AI assistance (Claude by Anthropic) to rapidly 
 - React 19
 - TypeScript
 - Framer Motion (for smooth animations)
-- TailwindCSS (for styling)
+- Styled Components (for styling)
 - Vite (for build process)
 
 ## Contributing
@@ -50,7 +55,7 @@ Contributions to make CardStack better for the neurodivergent community are welc
 
 ## Usage License
 
-CardStack is released under an open-source license with specific conditions:
+CardStack is released under the GNU Affero General Public License v3.0 with specific intentions for the neurodivergent community:
 
 - **Non-Commercial Use**: This project and all forks must remain free to use
 - **Open Source**: All derivative works must maintain open-source status
@@ -61,14 +66,14 @@ CardStack is released under an open-source license with specific conditions:
 
 This is just the beginning! Future updates and refinements planned include:
 
-- Customizable color themes for different sensory preferences
+- More customizable color themes for different sensory preferences
 - Adjustable animation speeds (or disable for those with motion sensitivity)
 - Optional sound effects with volume control
 - Data visualization of task completion patterns
 - Integration with calendar systems
-- Offline functionality for reduced internet anxiety
-- Customizable snooze intervals
-- Improved task categorization options
+- Improved offline functionality
+- More customizable snooze intervals
+- Enhanced task categorization options
 
 ## Installation
 
@@ -93,9 +98,8 @@ npm run dev
 
 CardStack is and will always remain free for the neurodivergent community. If you've found it helpful and want to support continued development, consider:
 
-- Not currently accepting donations, but if this gets some interest, perhaps that could change!
-- Spreading the word to others who might benefit
-
-All donations go toward development time, hosting costs, adding new features and improving accessibility features.
+- Star the repository
+- Share with others who might benefit
+- Contribute code or feedback
 
 Remember: Different brains need different tools. CardStack aims to be one of those tools for people who think differently.

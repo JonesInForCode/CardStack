@@ -1,15 +1,14 @@
-// src/main.tsx - Remove Tailwind imports and update for styled-components only
+// src/main.tsx - Update to use our custom ThemeProvider
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ThemeProvider } from 'styled-components'
 import ErrorBoundary from './components/ErrorBoundary'
 import App from './App.tsx'
-import theme from './styles/theme'
 import GlobalStyle from './styles/global'
+import { ThemeProvider } from './context/ThemeContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <GlobalStyle />
       <ErrorBoundary>
         <App />

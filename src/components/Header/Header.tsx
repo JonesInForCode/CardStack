@@ -1,6 +1,7 @@
 // src/components/Header/Header.tsx with proper styled-components
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
+import DarkModeToggle from '../DarkModeToggle';
 
 interface HeaderProps {
   onShuffle: () => void;
@@ -107,6 +108,7 @@ const Header = ({
         <Subtitle>Focus on one task at a time</Subtitle>
       </TitleContainer>
       <ButtonContainer>
+        <DarkModeToggle />
         <SimplifyButton
           whileTap={{ scale: 0.9 }}
           onClick={onToggleSimplifyMode}

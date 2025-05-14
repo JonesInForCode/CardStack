@@ -1,4 +1,4 @@
-// src/components/Modals/AddTaskModal.tsx
+// src/components/Modals/AddTaskModal.tsx with dark mode support
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
@@ -22,7 +22,7 @@ const ModalOverlay = styled(motion.div)`
 `;
 
 const ModalContent = styled(motion.div)`
-  background-color: white;
+  background-color: ${({ theme }) => theme.colors.cardBackground};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   padding: ${({ theme }) => theme.spacing.lg};
   width: 100%;
@@ -33,6 +33,7 @@ const ModalTitle = styled.h2`
   font-size: ${({ theme }) => theme.typography.fontSizes.xl};
   font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
   margin-bottom: ${({ theme }) => theme.spacing.md};
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
 const FormField = styled.div`
@@ -50,8 +51,10 @@ const Label = styled.label`
 const Input = styled.input`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid #D1D5DB;
+  border: 1px solid ${({ theme }) => theme.colors.textSecondary}50; // 50% opacity border
   border-radius: ${({ theme }) => theme.borderRadius.large};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
   
   &:focus {
     outline: none;
@@ -63,8 +66,10 @@ const Input = styled.input`
 const Textarea = styled.textarea`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid #D1D5DB;
+  border: 1px solid ${({ theme }) => theme.colors.textSecondary}50; // 50% opacity border
   border-radius: ${({ theme }) => theme.borderRadius.large};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
   resize: vertical;
   
   &:focus {
@@ -77,9 +82,10 @@ const Textarea = styled.textarea`
 const Select = styled.select`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid #D1D5DB;
+  border: 1px solid ${({ theme }) => theme.colors.textSecondary}50; // 50% opacity border
   border-radius: ${({ theme }) => theme.borderRadius.large};
-  background-color: white;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
   
   &:focus {
     outline: none;
@@ -103,8 +109,8 @@ const ButtonContainer = styled.div`
 
 const CancelButton = styled(motion.button)`
   padding: ${({ theme }) => theme.spacing.md};
-  background-color: #E5E7EB;
-  color: #4B5563;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textSecondary};
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   border-radius: ${({ theme }) => theme.borderRadius.large};
 `;

@@ -1,6 +1,7 @@
-// src/components/Card/TaskCard.tsx - Properly using styled-components
+// src/components/Card/TaskCard.tsx - Updated for dark mode compatibility
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
+import { useTheme } from '../../context/ThemeContext';
 import { type Task, type Priority, type Category } from '../../types/Task';
 
 interface TaskCardProps {
@@ -10,25 +11,38 @@ interface TaskCardProps {
   onDismiss: () => void;
   onSnooze: (hours: number) => void;
   isShuffling?: boolean;
-  simplifyMode?: boolean; // New prop for simplify mode
+  simplifyMode?: boolean;
 }
 
-// Get color for priority level
-const getPriorityColors = (priority: Priority) => {
-  switch (priority) {
-    case 'high':
-      return { bg: '#FEE2E2', border: '#EF4444', text: '#B91C1C' };
-    case 'medium':
-      return { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309' };
-    case 'low':
-      return { bg: '#D1FAE5', border: '#10B981', text: '#047857' };
-    default:
-      return { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' };
+// Get color for priority level with dark mode consideration
+const getPriorityColors = (priority: Priority, isDark: boolean) => {
+  if (isDark) {
+    switch (priority) {
+      case 'high':
+        return { bg: '#7f1d1d', border: '#ef4444', text: '#fca5a5' };
+      case 'medium':
+        return { bg: '#78350f', border: '#f59e0b', text: '#fcd34d' };
+      case 'low':
+        return { bg: '#064e3b', border: '#10b981', text: '#6ee7b7' };
+      default:
+        return { bg: '#1e40af', border: '#3b82f6', text: '#93c5fd' };
+    }
+  } else {
+    switch (priority) {
+      case 'high':
+        return { bg: '#FEE2E2', border: '#EF4444', text: '#B91C1C' };
+      case 'medium':
+        return { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309' };
+      case 'low':
+        return { bg: '#D1FAE5', border: '#10B981', text: '#047857' };
+      default:
+        return { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' };
+    }
   }
 };
 
-// Simplified mode colors - gentle and easy on the eyes
-const simplifiedColors = [
+// Simplified mode colors
+const getLightSimplifiedColors = [
   { bg: '#F0F9FF', border: '#7DD3FC', text: '#0369A1' }, // Light blue
   { bg: '#F0FDF4', border: '#86EFAC', text: '#166534' }, // Light green
   { bg: '#FDF4FF', border: '#D8B4FE', text: '#7E22CE' }, // Light purple
@@ -39,12 +53,24 @@ const simplifiedColors = [
   { bg: '#FEF2F2', border: '#FCA5A5', text: '#B91C1C' }  // Light red
 ];
 
-// Get a consistent color based on task ID
-const getSimplifiedColor = (taskId: string) => {
-  // Extract numeric part from the task ID and sum the characters
+// Dark mode simplified colors
+const getDarkSimplifiedColors = [
+  { bg: '#082f49', border: '#0284c7', text: '#7dd3fc' }, // Dark blue
+  { bg: '#052e16', border: '#16a34a', text: '#86efac' }, // Dark green
+  { bg: '#4a044e', border: '#a855f7', text: '#d8b4fe' }, // Dark purple
+  { bg: '#4c0519', border: '#e11d48', text: '#fda4af' }, // Dark pink
+  { bg: '#451a03', border: '#eab308', text: '#fcd34d' }, // Dark yellow
+  { bg: '#1a2e05', border: '#84cc16', text: '#bef264' }, // Dark lime
+  { bg: '#042f2e', border: '#14b8a6', text: '#5eead4' }, // Dark teal
+  { bg: '#450a0a', border: '#dc2626', text: '#fca5a5' }  // Dark red
+];
+
+// Get a consistent color based on task ID for simplified mode
+const getSimplifiedColor = (taskId: string, isDark: boolean) => {
+  const colors = isDark ? getDarkSimplifiedColors : getLightSimplifiedColors;
   const numericValue = taskId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const colorIndex = numericValue % simplifiedColors.length;
-  return simplifiedColors[colorIndex];
+  const colorIndex = numericValue % colors.length;
+  return colors[colorIndex];
 };
 
 // Get emoji for category
@@ -134,8 +160,8 @@ const CompleteButton = styled(motion.button)`
 
 const DismissButton = styled(motion.button)`
   padding: ${({ theme }) => theme.spacing.md};
-  background-color: #E5E7EB;
-  color: #4B5563;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.shadows.small};
@@ -155,8 +181,8 @@ const SnoozeButtonsGrid = styled.div`
 
 const SnoozeButton = styled(motion.button)`
   padding: ${({ theme }) => theme.spacing.sm};
-  background-color: #F3F4F6;
-  color: #4B5563;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   
@@ -182,6 +208,10 @@ const TaskCard = ({
   isShuffling = false,
   simplifyMode = false
 }: TaskCardProps) => {
+  // Get the current theme mode
+  const { themeMode } = useTheme();
+  const isDarkMode = themeMode === 'dark';
+  
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
     initial: isShuffling 
@@ -199,10 +229,10 @@ const TaskCard = ({
     }
   };
 
-  // Determine which color scheme to use based on simplifyMode
+  // Determine which color scheme to use based on simplifyMode and dark mode
   const colors = simplifyMode 
-    ? getSimplifiedColor(task.id) 
-    : getPriorityColors(task.priority);
+    ? getSimplifiedColor(task.id, isDarkMode) 
+    : getPriorityColors(task.priority, isDarkMode);
 
   return (
     <CardContainer

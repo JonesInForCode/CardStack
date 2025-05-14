@@ -1,5 +1,5 @@
 // src/styles/theme.ts - Define app theme colors and values
-const theme = {
+const lightTheme = {
   colors: {
     primary: '#4F46E5', // indigo-600
     primaryLight: '#818CF8', // indigo-400
@@ -79,4 +79,37 @@ const theme = {
   },
 };
 
-export default theme;
+// Dark theme variant with adjusted colors for better visibility and reduced eye strain
+const darkTheme = {
+  ...lightTheme,
+  colors: {
+    primary: '#6366F1', // Slightly lighter indigo for better contrast
+    primaryLight: '#818CF8', 
+    primaryDark: '#4F46E5',
+    background: '#111827', // Dark gray/blue background
+    cardBackground: '#1F2937', // Darker card background
+    textPrimary: '#F9FAFB', // Very light gray for main text
+    textSecondary: '#D1D5DB', // Light gray for secondary text
+    
+    // Priority colors - slightly muted for dark mode
+    highPriority: '#F87171', // Lighter red
+    mediumPriority: '#FBBF24', // Lighter amber
+    lowPriority: '#34D399', // Lighter emerald
+    
+    // UI colors
+    success: '#34D399', // Lighter emerald
+    danger: '#F87171', // Lighter red
+    warning: '#FBBF24', // Lighter amber
+    info: '#60A5FA', // Lighter blue
+  },
+  
+  shadows: {
+    small: '0 1px 2px 0 rgba(0, 0, 0, 0.25)',
+    medium: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.16)',
+    large: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15)',
+    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.14)',
+  },
+};
+
+export { lightTheme, darkTheme };
+export default lightTheme; // Export light theme as default for backwards compatibility

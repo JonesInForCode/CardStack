@@ -1,4 +1,4 @@
-// src/components/Drawers/CompletedTasksDrawer.tsx
+// src/components/Drawers/CompletedTasksDrawer.tsx with dark mode support
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task } from '../../types/Task';
@@ -15,7 +15,7 @@ const DrawerContainer = styled(motion.div)`
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: white;
+  background-color: ${({ theme }) => theme.colors.cardBackground};
   border-top-left-radius: ${({ theme }) => theme.borderRadius.xl};
   border-top-right-radius: ${({ theme }) => theme.borderRadius.xl};
   box-shadow: ${({ theme }) => theme.shadows.large};
@@ -32,6 +32,7 @@ const DrawerTitle = styled.h2`
   font-size: ${({ theme }) => theme.typography.fontSizes.xl};
   font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
   margin-bottom: ${({ theme }) => theme.spacing.md};
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
 const EmptyMessage = styled.p`
@@ -48,7 +49,7 @@ const TasksContainer = styled.div`
 
 const TaskItem = styled.div`
   padding: ${({ theme }) => theme.spacing.md};
-  background-color: #F3F4F6;
+  background-color: ${({ theme }) => theme.colors.background};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   display: flex;
   justify-content: space-between;
@@ -60,6 +61,7 @@ const TaskInfo = styled.div``;
 const TaskTitle = styled.h3`
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   text-decoration: line-through;
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
 const TaskDate = styled.p`
@@ -69,7 +71,7 @@ const TaskDate = styled.p`
 
 const ReturnButton = styled(motion.button)`
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
-  background-color: #E0E7FF;
+  background-color: ${({ theme }) => theme.colors.primaryLight}40;
   color: ${({ theme }) => theme.colors.primary};
   padding: ${({ theme }) => theme.spacing.sm};
   border-radius: ${({ theme }) => theme.borderRadius.large};
@@ -83,8 +85,8 @@ const CloseButtonContainer = styled.div`
 
 const CloseButton = styled(motion.button)`
   padding: ${({ theme }) => theme.spacing.sm};
-  background-color: #E5E7EB;
-  color: #4B5563;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textSecondary};
   border-radius: ${({ theme }) => theme.borderRadius.large};
 `;
 

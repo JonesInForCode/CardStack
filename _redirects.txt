@@ -1,0 +1,7 @@
+# Netlify redirects file
+# Serve assets directly
+/assets/*  /assets/:splat  200
+/service-worker.js  /service-worker.js  200
+
+# Handle SPA routing
+/*    /index.html   200

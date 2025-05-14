@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task, type Priority, type Category } from '../../types/Task';
+import { useTheme } from '../../context/ThemeContext';
 
 interface TaskCardProps {
   task: Task;
@@ -13,22 +14,37 @@ interface TaskCardProps {
   simplifyMode?: boolean; // New prop for simplify mode
 }
 
-// Get color for priority level
-const getPriorityColors = (priority: Priority) => {
-  switch (priority) {
-    case 'high':
-      return { bg: '#FEE2E2', border: '#EF4444', text: '#B91C1C' };
-    case 'medium':
-      return { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309' };
-    case 'low':
-      return { bg: '#D1FAE5', border: '#10B981', text: '#047857' };
-    default:
-      return { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' };
+// Get color for priority level - respects theme mode
+const getPriorityColors = (priority: Priority, isDarkMode: boolean) => {
+  if (isDarkMode) {
+    // Dark mode colors - softer, less bright
+    switch (priority) {
+      case 'high':
+        return { bg: '#3B0404', border: '#EF4444', text: '#F87171' };
+      case 'medium':
+        return { bg: '#452A05', border: '#F59E0B', text: '#FBBF24' };
+      case 'low':
+        return { bg: '#052E1A', border: '#10B981', text: '#34D399' };
+      default:
+        return { bg: '#1E1B4B', border: '#6366F1', text: '#818CF8' };
+    }
+  } else {
+    // Light mode colors - unchanged
+    switch (priority) {
+      case 'high':
+        return { bg: '#FEE2E2', border: '#EF4444', text: '#B91C1C' };
+      case 'medium':
+        return { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309' };
+      case 'low':
+        return { bg: '#D1FAE5', border: '#10B981', text: '#047857' };
+      default:
+        return { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' };
+    }
   }
 };
 
-// Simplified mode colors - gentle and easy on the eyes
-const simplifiedColors = [
+// Simplified mode colors - theme aware
+const getLightSimplifiedColors = () => [
   { bg: '#F0F9FF', border: '#7DD3FC', text: '#0369A1' }, // Light blue
   { bg: '#F0FDF4', border: '#86EFAC', text: '#166534' }, // Light green
   { bg: '#FDF4FF', border: '#D8B4FE', text: '#7E22CE' }, // Light purple
@@ -39,12 +55,24 @@ const simplifiedColors = [
   { bg: '#FEF2F2', border: '#FCA5A5', text: '#B91C1C' }  // Light red
 ];
 
-// Get a consistent color based on task ID
-const getSimplifiedColor = (taskId: string) => {
+const getDarkSimplifiedColors = () => [
+  { bg: '#082F49', border: '#0EA5E9', text: '#7DD3FC' }, // Dark blue
+  { bg: '#052E16', border: '#10B981', text: '#86EFAC' }, // Dark green
+  { bg: '#4A1D96', border: '#8B5CF6', text: '#D8B4FE' }, // Dark purple
+  { bg: '#831843', border: '#EC4899', text: '#FDA4AF' }, // Dark pink
+  { bg: '#713F12', border: '#EAB308', text: '#FCD34D' }, // Dark yellow
+  { bg: '#365314', border: '#84CC16', text: '#BEF264' }, // Dark lime
+  { bg: '#134E4A', border: '#14B8A6', text: '#5EEAD4' }, // Dark teal
+  { bg: '#7F1D1D', border: '#EF4444', text: '#FCA5A5' }  // Dark red
+];
+
+// Get a consistent color based on task ID and theme
+const getSimplifiedColor = (taskId: string, isDarkMode: boolean) => {
   // Extract numeric part from the task ID and sum the characters
   const numericValue = taskId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const colorIndex = numericValue % simplifiedColors.length;
-  return simplifiedColors[colorIndex];
+  const colorArray = isDarkMode ? getDarkSimplifiedColors() : getLightSimplifiedColors();
+  const colorIndex = numericValue % colorArray.length;
+  return colorArray[colorIndex];
 };
 
 // Get emoji for category
@@ -193,8 +221,8 @@ const SnoozeButtonsGrid = styled.div`
 
 const SnoozeButton = styled(motion.button)`
   padding: ${({ theme }) => theme.spacing.sm};
-  background-color: #F3F4F6;
-  color: #4B5563;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   
@@ -220,6 +248,10 @@ const TaskCard = ({
   isShuffling = false,
   simplifyMode = false
 }: TaskCardProps) => {
+  // Get current theme mode
+  const { themeMode } = useTheme();
+  const isDarkMode = themeMode === 'dark';
+  
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
     initial: isShuffling 
@@ -237,10 +269,10 @@ const TaskCard = ({
     }
   };
 
-  // Determine which color scheme to use based on simplifyMode
+  // Determine which color scheme to use based on simplifyMode and theme
   const colors = simplifyMode 
-    ? getSimplifiedColor(task.id) 
-    : getPriorityColors(task.priority);
+    ? getSimplifiedColor(task.id, isDarkMode) 
+    : getPriorityColors(task.priority, isDarkMode);
 
   // Check if task is snoozed
   const isSnoozed = !!task.snoozedUntil && task.snoozedUntil > new Date();

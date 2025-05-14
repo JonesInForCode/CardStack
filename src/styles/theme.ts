@@ -83,7 +83,7 @@ const lightTheme = {
 const darkTheme = {
   ...lightTheme,
   colors: {
-    primary: '#6366F1', // Slightly lighter indigo for better contrast
+    primary: '#6366F1', // Brighter indigo for better visibility in dark mode
     primaryLight: '#818CF8', 
     primaryDark: '#4F46E5',
     background: '#111827', // Dark gray/blue background

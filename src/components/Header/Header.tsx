@@ -11,12 +11,12 @@ interface HeaderProps {
 }
 
 const HeaderContainer = styled.header`
-  background-color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.cardBackground};
   padding: ${({ theme }) => theme.spacing.md};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: white;
+  color: ${({ theme }) => theme.colors.textPrimary};
   box-shadow: ${({ theme }) => theme.shadows.medium};
 `;
 

@@ -66,20 +66,20 @@ CardStack is released under the GNU Affero General Public License v3.0 with spec
 
 This is just the beginning! Future updates and refinements planned include:
 
-- More customizable color themes for different sensory preferences
-- Adjustable animation speeds (or disable for those with motion sensitivity)
-- Optional sound effects with volume control
-- Data visualization of task completion patterns
-- Integration with calendar systems
+- Pomodoro Mode
+- Auto prioritization
+- Auto breaktime notification
+- Mobile app notifications
 - Improved offline functionality
 - More customizable snooze intervals
 - Enhanced task categorization options
+- Release to Android (maybe)
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/cardstack.git
+git clone https://github.com/JonesInForCode/cardstack.git
 
 # Install dependencies
 npm install

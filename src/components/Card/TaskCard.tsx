@@ -1,4 +1,4 @@
-// src/components/Card/TaskCard.tsx
+// src/components/Card/TaskCard.tsx - Properly using styled-components
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task, type Priority, type Category } from '../../types/Task';
@@ -9,6 +9,7 @@ interface TaskCardProps {
   onComplete: () => void;
   onDismiss: () => void;
   onSnooze: (hours: number) => void;
+  isShuffling?: boolean; // New prop for shuffle animation
 }
 
 // Get color for priority level
@@ -42,14 +43,9 @@ const getCategoryEmoji = (category: Category): string => {
 };
 
 // Styled components
-const CardWrapper = styled.div`
-  width: 100%;
-  max-width: 400px; // Added max-width constraint
-  margin: 0 auto;
-`;
-
 const CardContainer = styled(motion.div)<{ priority: Priority }>`
   width: 100%;
+  max-width: 100%;
   padding: ${({ theme }) => theme.spacing.lg};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   box-shadow: ${({ theme }) => theme.shadows.large};
@@ -108,6 +104,11 @@ const CompleteButton = styled(motion.button)`
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.shadows.small};
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 `;
 
 const DismissButton = styled(motion.button)`
@@ -117,6 +118,11 @@ const DismissButton = styled(motion.button)`
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.shadows.small};
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 `;
 
 const SnoozeButtonsGrid = styled.div`
@@ -132,6 +138,11 @@ const SnoozeButton = styled(motion.button)`
   color: #4B5563;
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   border-radius: ${({ theme }) => theme.borderRadius.large};
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 `;
 
 const TaskCount = styled.div`
@@ -146,75 +157,97 @@ const TaskCard = ({
   taskCount, 
   onComplete, 
   onDismiss, 
-  onSnooze 
+  onSnooze,
+  isShuffling = false
 }: TaskCardProps) => {
+  // Different animations based on whether we're shuffling or just showing a card
+  const cardVariants = {
+    initial: isShuffling 
+      ? { opacity: 1, y: 0, scale: 1, rotateY: 0 } 
+      : { opacity: 0, y: 50, scale: 0.8 },
+    animate: { opacity: 1, y: 0, scale: 1, rotateY: 0 },
+    exit: isShuffling 
+      ? { opacity: 0, rotateY: 90, transition: { duration: 0.3 } }
+      : { opacity: 0, y: -50, scale: 0.8 },
+    shuffling: { 
+      opacity: 0.8, 
+      scale: 0.9, 
+      rotateY: 90,
+      transition: { duration: 0.3 } 
+    }
+  };
+
   return (
-    <CardWrapper>
-      <CardContainer
-        priority={task.priority}
-        key={task.id}
-        initial={{ opacity: 0, y: 50, scale: 0.8 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -50, scale: 0.8 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      >
-        <CardHeader>
-          <CategoryEmoji>{getCategoryEmoji(task.category)}</CategoryEmoji>
-          <PriorityLabel priority={task.priority}>
-            {task.priority} priority
-          </PriorityLabel>
-        </CardHeader>
-        
-        <CardTitle>{task.title}</CardTitle>
-        <CardDescription>{task.description}</CardDescription>
-        
-        {task.dueDate && (
-          <DueDate>
-            Due: {task.dueDate.toLocaleDateString()}
-          </DueDate>
-        )}
-        
-        <ActionButtonsGrid>
-          <CompleteButton
-            whileTap={{ scale: 0.95 }}
-            onClick={onComplete}
-          >
-            Complete
-          </CompleteButton>
-          <DismissButton
-            whileTap={{ scale: 0.95 }}
-            onClick={onDismiss}
-          >
-            Dismiss
-          </DismissButton>
-        </ActionButtonsGrid>
-        
-        <SnoozeButtonsGrid>
-          <SnoozeButton
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onSnooze(1)}
-          >
-            +1 hour
-          </SnoozeButton>
-          <SnoozeButton
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onSnooze(3)}
-          >
-            +3 hours
-          </SnoozeButton>
-          <SnoozeButton
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onSnooze(24)}
-          >
-            Tomorrow
-          </SnoozeButton>
-        </SnoozeButtonsGrid>
-        
-        <TaskCount>
-          {taskCount} task{taskCount !== 1 ? 's' : ''} in your stack
-        </TaskCount>
-      </CardContainer>
-    </CardWrapper>
+    <CardContainer
+      priority={task.priority}
+      key={task.id}
+      initial="initial"
+      animate={isShuffling ? "shuffling" : "animate"}
+      exit="exit"
+      variants={cardVariants}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+    >
+      <CardHeader>
+        <CategoryEmoji>{getCategoryEmoji(task.category)}</CategoryEmoji>
+        <PriorityLabel priority={task.priority}>
+          {task.priority} priority
+        </PriorityLabel>
+      </CardHeader>
+      
+      <CardTitle>{task.title}</CardTitle>
+      <CardDescription>{task.description}</CardDescription>
+      
+      {task.dueDate && (
+        <DueDate>
+          Due: {task.dueDate.toLocaleDateString()}
+        </DueDate>
+      )}
+      
+      <ActionButtonsGrid>
+        <CompleteButton
+          whileTap={{ scale: 0.95 }}
+          onClick={onComplete}
+          disabled={isShuffling}
+        >
+          Complete
+        </CompleteButton>
+        <DismissButton
+          whileTap={{ scale: 0.95 }}
+          onClick={onDismiss}
+          disabled={isShuffling}
+        >
+          Dismiss
+        </DismissButton>
+      </ActionButtonsGrid>
+      
+      <SnoozeButtonsGrid>
+        <SnoozeButton
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onSnooze(1)}
+          disabled={isShuffling}
+        >
+          +1 hour
+        </SnoozeButton>
+        <SnoozeButton
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onSnooze(3)}
+          disabled={isShuffling}
+        >
+          +3 hours
+        </SnoozeButton>
+        <SnoozeButton
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onSnooze(24)}
+          disabled={isShuffling}
+        >
+          Tomorrow
+        </SnoozeButton>
+      </SnoozeButtonsGrid>
+      
+      <TaskCount>
+        {taskCount} task{taskCount !== 1 ? 's' : ''} in your stack
+      </TaskCount>
+    </CardContainer>
   );
 };
 

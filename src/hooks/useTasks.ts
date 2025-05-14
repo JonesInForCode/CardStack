@@ -200,6 +200,30 @@ export const useTasks = () => {
     );
   }, [completedTasks]);
 
+  // NEW: Shuffle the task deck - Fisher-Yates algorithm
+  const shuffleDeck = useCallback(() => {
+    if (tasks.length <= 1) return; // No need to shuffle 0 or 1 tasks
+    
+    // Add haptic feedback for shuffle
+    triggerHapticFeedback('shuffle');
+    
+    setTasks(prevTasks => {
+      // Make a copy of the array
+      const shuffledTasks = [...prevTasks];
+      
+      // Fisher-Yates shuffle algorithm
+      for (let i = shuffledTasks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledTasks[i], shuffledTasks[j]] = [shuffledTasks[j], shuffledTasks[i]];
+      }
+      
+      return shuffledTasks;
+    });
+    
+    // Reset to the first task in the newly shuffled deck
+    setCurrentTaskIndex(0);
+  }, [tasks.length]);
+
   return {
     tasks,
     completedTasks,
@@ -212,5 +236,6 @@ export const useTasks = () => {
     snoozeTask,
     addTask,
     returnToStack,
+    shuffleDeck, // Export the new shuffle function
   };
 };

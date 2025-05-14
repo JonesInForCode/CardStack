@@ -12,4 +12,5 @@ export const HAPTIC_DURATION = {
   COMPLETE: 100,
   DISMISS: 50,
   SNOOZE: 30,
+  SHUFFLE: 80, // Adding haptic feedback for shuffle action
 };

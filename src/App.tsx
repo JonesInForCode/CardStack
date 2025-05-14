@@ -1,4 +1,3 @@
-// src/App.tsx
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
@@ -18,7 +17,6 @@ import { useTasks } from './hooks/useTasks';
 // Constants
 import { ANIMATION_DURATION } from './constants';
 
-// Styled components
 const AppContainer = styled.div`
   position: relative;
   min-height: 100vh;
@@ -35,7 +33,7 @@ const MainContent = styled.main`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-bottom: 6rem; /* Space for fixed footer */
+  padding-bottom: 6rem; /* Space for footer */
 `;
 
 const EmptyStateContainer = styled.div`
@@ -78,12 +76,26 @@ const App = () => {
     snoozeTask,
     addTask,
     returnToStack,
+    shuffleDeck, // New shuffleDeck function
   } = useTasks();
 
   // UI state
   const [showAddTask, setShowAddTask] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
+
+  // Handle shuffle with animation
+  const handleShuffle = () => {
+    if (tasks.length <= 1) return; // Don't shuffle if not enough tasks
+    
+    setIsShuffling(true);
+    // Small delay to allow animation to show before actual shuffle happens
+    setTimeout(() => {
+      shuffleDeck();
+      setIsShuffling(false);
+    }, 300);
+  };
 
   // Hide splash screen after a delay
   useEffect(() => {
@@ -98,7 +110,11 @@ const App = () => {
     <AppContainer>
       {showSplash && <SplashScreen onAnimationComplete={() => setShowSplash(false)} />}
       
-      <Header />
+      {/* Updated Header with shuffle functionality */}
+      <Header 
+        onShuffle={handleShuffle}
+        taskCount={tasks.length}
+      />
 
       <MainContent>
         {isLoading ? (
@@ -113,6 +129,7 @@ const App = () => {
                 onComplete={completeTask}
                 onDismiss={dismissTask}
                 onSnooze={snoozeTask}
+                isShuffling={isShuffling} // Pass shuffling state to card for animations
               />
             )}
           </AnimatePresence>

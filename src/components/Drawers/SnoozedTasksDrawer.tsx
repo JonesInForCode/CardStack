@@ -1,13 +1,36 @@
-// src/components/Drawers/CompletedTasksDrawer.tsx
+// src/components/Drawers/SnoozedTasksDrawer.tsx
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task } from '../../types/Task';
 
-interface CompletedTasksDrawerProps {
-  completedTasks: Task[];
+interface SnoozedTasksDrawerProps {
+  snoozedTasks: Task[];
   onClose: () => void;
-  onReturnToStack: (taskId: string) => void;
+  onUnsnoozeTasks: (taskId: string) => void; // Callback to restore a snoozed task
 }
+
+// Format the snooze until time in a user-friendly way
+const formatSnoozeTime = (date: Date): string => {
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffMins = Math.round(diffMs / 60000);
+  
+  if (diffMins < 60) {
+    return `${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
+  }
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+  }
+  
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) {
+    return 'tomorrow';
+  }
+  
+  return `${diffDays} days`;
+};
 
 // Styled components
 const DrawerContainer = styled(motion.div)`
@@ -32,7 +55,6 @@ const DrawerTitle = styled.h2`
   font-size: ${({ theme }) => theme.typography.fontSizes.xl};
   font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
   margin-bottom: ${({ theme }) => theme.spacing.md};
-  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
 const EmptyMessage = styled.p`
@@ -60,16 +82,31 @@ const TaskInfo = styled.div``;
 
 const TaskTitle = styled.h3`
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
-  text-decoration: line-through;
   color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
-const TaskDate = styled.p`
+const TaskSnoozeTime = styled.p`
   font-size: ${({ theme }) => theme.typography.fontSizes.xs};
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
-const ReturnButton = styled(motion.button)`
+const UnsnoozeBadge = styled.span`
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: ${({ theme }) => theme.colors.primaryLight};
+  color: white;
+  font-size: ${({ theme }) => theme.typography.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
+  padding: 4px 8px;
+  border-radius: 12px;
+`;
+
+const ButtonWrapper = styled.div`
+  position: relative;
+`;
+
+const UnsnoozeButton = styled(motion.button)`
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   background-color: ${({ theme }) => theme.colors.primaryDark};
   color: white;
@@ -90,11 +127,18 @@ const CloseButton = styled(motion.button)`
   border-radius: ${({ theme }) => theme.borderRadius.large};
 `;
 
-const CompletedTasksDrawer = ({ 
-  completedTasks, 
+const SnoozedTasksDrawer = ({ 
+  snoozedTasks, 
   onClose, 
-  onReturnToStack 
-}: CompletedTasksDrawerProps) => {
+  onUnsnoozeTasks 
+}: SnoozedTasksDrawerProps) => {
+  // Sort tasks by snoozedUntil time (closest first)
+  const sortedTasks = [...snoozedTasks].sort((a, b) => {
+    if (!a.snoozedUntil) return 1;
+    if (!b.snoozedUntil) return -1;
+    return a.snoozedUntil.getTime() - b.snoozedUntil.getTime();
+  });
+
   return (
     <DrawerContainer
       initial={{ y: '100%' }}
@@ -102,26 +146,29 @@ const CompletedTasksDrawer = ({
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
     >
-      <DrawerTitle>Completed Tasks</DrawerTitle>
+      <DrawerTitle>Snoozed Tasks</DrawerTitle>
       
-      {completedTasks.length === 0 ? (
-        <EmptyMessage>No completed tasks yet</EmptyMessage>
+      {sortedTasks.length === 0 ? (
+        <EmptyMessage>No snoozed tasks</EmptyMessage>
       ) : (
         <TasksContainer>
-          {completedTasks.map(task => (
+          {sortedTasks.map(task => (
             <TaskItem key={task.id}>
               <TaskInfo>
                 <TaskTitle>{task.title}</TaskTitle>
-                <TaskDate>
-                  Completed: {task.completedDate?.toLocaleDateString()}
-                </TaskDate>
+                <TaskSnoozeTime>
+                  Returns in: {task.snoozedUntil ? formatSnoozeTime(task.snoozedUntil) : 'Unknown'}
+                </TaskSnoozeTime>
               </TaskInfo>
-              <ReturnButton
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onReturnToStack(task.id)}
-              >
-                Return to Stack
-              </ReturnButton>
+              <ButtonWrapper>
+                <UnsnoozeButton
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => onUnsnoozeTasks(task.id)}
+                >
+                  Unsnooze
+                </UnsnoozeButton>
+                <UnsnoozeBadge>Now</UnsnoozeBadge>
+              </ButtonWrapper>
             </TaskItem>
           ))}
         </TasksContainer>
@@ -139,4 +186,4 @@ const CompletedTasksDrawer = ({
   );
 };
 
-export default CompletedTasksDrawer;
+export default SnoozedTasksDrawer;

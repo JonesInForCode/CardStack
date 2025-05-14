@@ -1,7 +1,6 @@
-// src/components/Card/TaskCard.tsx - Updated for dark mode compatibility
+// src/components/Card/TaskCard.tsx - Properly using styled-components
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { useTheme } from '../../context/ThemeContext';
 import { type Task, type Priority, type Category } from '../../types/Task';
 
 interface TaskCardProps {
@@ -11,38 +10,25 @@ interface TaskCardProps {
   onDismiss: () => void;
   onSnooze: (hours: number) => void;
   isShuffling?: boolean;
-  simplifyMode?: boolean;
+  simplifyMode?: boolean; // New prop for simplify mode
 }
 
-// Get color for priority level with dark mode consideration
-const getPriorityColors = (priority: Priority, isDark: boolean) => {
-  if (isDark) {
-    switch (priority) {
-      case 'high':
-        return { bg: '#7f1d1d', border: '#ef4444', text: '#fca5a5' };
-      case 'medium':
-        return { bg: '#78350f', border: '#f59e0b', text: '#fcd34d' };
-      case 'low':
-        return { bg: '#064e3b', border: '#10b981', text: '#6ee7b7' };
-      default:
-        return { bg: '#1e40af', border: '#3b82f6', text: '#93c5fd' };
-    }
-  } else {
-    switch (priority) {
-      case 'high':
-        return { bg: '#FEE2E2', border: '#EF4444', text: '#B91C1C' };
-      case 'medium':
-        return { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309' };
-      case 'low':
-        return { bg: '#D1FAE5', border: '#10B981', text: '#047857' };
-      default:
-        return { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' };
-    }
+// Get color for priority level
+const getPriorityColors = (priority: Priority) => {
+  switch (priority) {
+    case 'high':
+      return { bg: '#FEE2E2', border: '#EF4444', text: '#B91C1C' };
+    case 'medium':
+      return { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309' };
+    case 'low':
+      return { bg: '#D1FAE5', border: '#10B981', text: '#047857' };
+    default:
+      return { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' };
   }
 };
 
-// Simplified mode colors
-const getLightSimplifiedColors = [
+// Simplified mode colors - gentle and easy on the eyes
+const simplifiedColors = [
   { bg: '#F0F9FF', border: '#7DD3FC', text: '#0369A1' }, // Light blue
   { bg: '#F0FDF4', border: '#86EFAC', text: '#166534' }, // Light green
   { bg: '#FDF4FF', border: '#D8B4FE', text: '#7E22CE' }, // Light purple
@@ -53,24 +39,12 @@ const getLightSimplifiedColors = [
   { bg: '#FEF2F2', border: '#FCA5A5', text: '#B91C1C' }  // Light red
 ];
 
-// Dark mode simplified colors
-const getDarkSimplifiedColors = [
-  { bg: '#082f49', border: '#0284c7', text: '#7dd3fc' }, // Dark blue
-  { bg: '#052e16', border: '#16a34a', text: '#86efac' }, // Dark green
-  { bg: '#4a044e', border: '#a855f7', text: '#d8b4fe' }, // Dark purple
-  { bg: '#4c0519', border: '#e11d48', text: '#fda4af' }, // Dark pink
-  { bg: '#451a03', border: '#eab308', text: '#fcd34d' }, // Dark yellow
-  { bg: '#1a2e05', border: '#84cc16', text: '#bef264' }, // Dark lime
-  { bg: '#042f2e', border: '#14b8a6', text: '#5eead4' }, // Dark teal
-  { bg: '#450a0a', border: '#dc2626', text: '#fca5a5' }  // Dark red
-];
-
-// Get a consistent color based on task ID for simplified mode
-const getSimplifiedColor = (taskId: string, isDark: boolean) => {
-  const colors = isDark ? getDarkSimplifiedColors : getLightSimplifiedColors;
+// Get a consistent color based on task ID
+const getSimplifiedColor = (taskId: string) => {
+  // Extract numeric part from the task ID and sum the characters
   const numericValue = taskId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const colorIndex = numericValue % colors.length;
-  return colors[colorIndex];
+  const colorIndex = numericValue % simplifiedColors.length;
+  return simplifiedColors[colorIndex];
 };
 
 // Get emoji for category
@@ -87,6 +61,29 @@ const getCategoryEmoji = (category: Category): string => {
     default:
       return '📝';
   }
+};
+
+// Format the snooze until time in a user-friendly way
+const formatSnoozeTime = (date: Date): string => {
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffMins = Math.round(diffMs / 60000);
+  
+  if (diffMins < 60) {
+    return `in ${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
+  }
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) {
+    return `in ${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+  }
+  
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) {
+    return 'tomorrow';
+  }
+  
+  return `in ${diffDays} days`;
 };
 
 // Styled components
@@ -131,10 +128,25 @@ const CardDescription = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
+const InfoRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xs};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
 const DueDate = styled.p`
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textSecondary};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+const SnoozeInfo = styled.p`
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.primaryLight}20; /* 20 = 12% opacity */
+  padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  display: inline-block;
 `;
 
 const ActionButtonsGrid = styled.div`
@@ -160,8 +172,8 @@ const CompleteButton = styled(motion.button)`
 
 const DismissButton = styled(motion.button)`
   padding: ${({ theme }) => theme.spacing.md};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  background-color: #E5E7EB;
+  color: #4B5563;
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.shadows.small};
@@ -181,8 +193,8 @@ const SnoozeButtonsGrid = styled.div`
 
 const SnoozeButton = styled(motion.button)`
   padding: ${({ theme }) => theme.spacing.sm};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  background-color: #F3F4F6;
+  color: #4B5563;
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   
@@ -208,10 +220,6 @@ const TaskCard = ({
   isShuffling = false,
   simplifyMode = false
 }: TaskCardProps) => {
-  // Get the current theme mode
-  const { themeMode } = useTheme();
-  const isDarkMode = themeMode === 'dark';
-  
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
     initial: isShuffling 
@@ -229,10 +237,13 @@ const TaskCard = ({
     }
   };
 
-  // Determine which color scheme to use based on simplifyMode and dark mode
+  // Determine which color scheme to use based on simplifyMode
   const colors = simplifyMode 
-    ? getSimplifiedColor(task.id, isDarkMode) 
-    : getPriorityColors(task.priority, isDarkMode);
+    ? getSimplifiedColor(task.id) 
+    : getPriorityColors(task.priority);
+
+  // Check if task is snoozed
+  const isSnoozed = !!task.snoozedUntil && task.snoozedUntil > new Date();
 
   return (
     <CardContainer
@@ -257,24 +268,32 @@ const TaskCard = ({
       <CardTitle>{task.title}</CardTitle>
       <CardDescription>{task.description}</CardDescription>
       
-      {task.dueDate && (
-        <DueDate>
-          Due: {task.dueDate.toLocaleDateString()}
-        </DueDate>
-      )}
+      <InfoRow>
+        {task.dueDate && (
+          <DueDate>
+            Due: {task.dueDate.toLocaleDateString()}
+          </DueDate>
+        )}
+        
+        {isSnoozed && task.snoozedUntil && (
+          <SnoozeInfo>
+            Returns {formatSnoozeTime(task.snoozedUntil)}
+          </SnoozeInfo>
+        )}
+      </InfoRow>
       
       <ActionButtonsGrid>
         <CompleteButton
           whileTap={{ scale: 0.95 }}
           onClick={onComplete}
-          disabled={isShuffling}
+          disabled={isShuffling || isSnoozed}
         >
           Complete
         </CompleteButton>
         <DismissButton
           whileTap={{ scale: 0.95 }}
           onClick={onDismiss}
-          disabled={isShuffling}
+          disabled={isShuffling || isSnoozed}
         >
           Dismiss
         </DismissButton>
@@ -284,21 +303,21 @@ const TaskCard = ({
         <SnoozeButton
           whileTap={{ scale: 0.95 }}
           onClick={() => onSnooze(1)}
-          disabled={isShuffling}
+          disabled={isShuffling || isSnoozed}
         >
           +1 hour
         </SnoozeButton>
         <SnoozeButton
           whileTap={{ scale: 0.95 }}
           onClick={() => onSnooze(3)}
-          disabled={isShuffling}
+          disabled={isShuffling || isSnoozed}
         >
           +3 hours
         </SnoozeButton>
         <SnoozeButton
           whileTap={{ scale: 0.95 }}
           onClick={() => onSnooze(24)}
-          disabled={isShuffling}
+          disabled={isShuffling || isSnoozed}
         >
           Tomorrow
         </SnoozeButton>

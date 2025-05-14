@@ -8,7 +8,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import TaskCard from './components/Card';
 import AddTaskModal from './components/Modals';
-import CompletedTasksDrawer from './components/Drawers';
+import { CompletedTasksDrawer, SnoozedTasksDrawer } from './components/Drawers';
 import Loading from './components/Loading';
 
 // Hooks
@@ -39,7 +39,7 @@ const MainContent = styled.main`
 const EmptyStateContainer = styled.div`
   text-align: center;
   padding: ${({ theme }) => theme.spacing.xl};
-  background-color: white;
+  background-color: ${({ theme }) => theme.colors.cardBackground};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   box-shadow: ${({ theme }) => theme.shadows.medium};
 `;
@@ -53,6 +53,17 @@ const EmptyStateTitle = styled.h2`
 const EmptyStateText = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
   margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+const SnoozedTasksInfo = styled.div`
+  background-color: ${({ theme }) => theme.colors.primaryDark};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  padding: ${({ theme }) => theme.spacing.md};
+  margin-top: ${({ theme }) => theme.spacing.md};
+  text-align: center;
+  color: white;
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  cursor: pointer;
 `;
 
 const AddTaskButton = styled.button`
@@ -71,17 +82,21 @@ const App = () => {
     completedTasks,
     currentTask,
     isLoading,
+    snoozedTasks,
+    snoozedTasksCount,
     completeTask,
     dismissTask,
     snoozeTask,
+    unsnoozeTask,
     addTask,
     returnToStack,
-    shuffleDeck, // New shuffleDeck function
+    shuffleDeck,
   } = useTasks();
 
   // UI state
   const [showAddTask, setShowAddTask] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
+  const [showSnoozedTasks, setShowSnoozedTasks] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
   const [simplifyMode, setSimplifyMode] = useState(false); // New state for "Don't Prioritize" feature
@@ -128,21 +143,42 @@ const App = () => {
         {isLoading ? (
           <Loading message="Loading your stack..." />
         ) : tasks.length > 0 ? (
-          <AnimatePresence mode="wait">
-            {currentTask && (
-              <TaskCard 
-                key={currentTask.id}
-                task={currentTask}
-                taskCount={tasks.length}
-                onComplete={completeTask}
-                onDismiss={dismissTask}
-                onSnooze={snoozeTask}
-                isShuffling={isShuffling}
-                simplifyMode={simplifyMode} // Pass simplify mode to card
-              />
+          <>
+            <AnimatePresence mode="wait">
+              {currentTask && (
+                <TaskCard 
+                  key={currentTask.id}
+                  task={currentTask}
+                  taskCount={tasks.length}
+                  onComplete={completeTask}
+                  onDismiss={dismissTask}
+                  onSnooze={snoozeTask}
+                  isShuffling={isShuffling}
+                  simplifyMode={simplifyMode}
+                />
+              )}
+            </AnimatePresence>
+            
+            {/* Show snoozed tasks info if any tasks are snoozed */}
+            {snoozedTasksCount > 0 && !showSnoozedTasks && (
+              <SnoozedTasksInfo onClick={() => setShowSnoozedTasks(true)}>
+                {snoozedTasksCount} task{snoozedTasksCount !== 1 ? 's' : ''} snoozed
+              </SnoozedTasksInfo>
             )}
-          </AnimatePresence>
+          </>
+        ) : snoozedTasksCount > 0 ? (
+          // Show a special message when all tasks are snoozed
+          <EmptyStateContainer>
+            <EmptyStateTitle>All tasks are snoozed!</EmptyStateTitle>
+            <EmptyStateText>
+              You have {snoozedTasksCount} snoozed task{snoozedTasksCount !== 1 ? 's' : ''} that will return later.
+            </EmptyStateText>
+            <AddTaskButton onClick={() => setShowAddTask(true)}>
+              Add a new task
+            </AddTaskButton>
+          </EmptyStateContainer>
         ) : (
+          // Empty state when no tasks exist
           <EmptyStateContainer>
             <EmptyStateTitle>Your stack is empty!</EmptyStateTitle>
             <EmptyStateText>Add a new task to get started.</EmptyStateText>
@@ -157,6 +193,9 @@ const App = () => {
         onAddTask={() => setShowAddTask(true)}
         onToggleCompletedTasks={() => setShowCompletedTasks(!showCompletedTasks)}
         showCompletedTasks={showCompletedTasks}
+        snoozedTasksCount={snoozedTasksCount}
+        onToggleSnoozedTasks={() => setShowSnoozedTasks(!showSnoozedTasks)}
+        showSnoozedTasks={showSnoozedTasks}
       />
 
       {/* Modals */}
@@ -173,6 +212,14 @@ const App = () => {
             completedTasks={completedTasks}
             onClose={() => setShowCompletedTasks(false)}
             onReturnToStack={returnToStack}
+          />
+        )}
+        
+        {showSnoozedTasks && (
+          <SnoozedTasksDrawer 
+            snoozedTasks={snoozedTasks}
+            onClose={() => setShowSnoozedTasks(false)}
+            onUnsnoozeTasks={unsnoozeTask}
           />
         )}
       </AnimatePresence>

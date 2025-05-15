@@ -51,18 +51,23 @@ const SnoozedTasksButton = styled(motion.button)<{ hasSnoozed: boolean }>`
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   position: relative;
+  overflow: visible; // Ensure the badge can extend beyond the button's boundaries
 `;
 
 const SnoozeBadge = styled.span`
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -12px; // Moved up to ensure visibility
+  right: -12px; // Moved right to ensure visibility
   background-color: ${({ theme }) => theme.colors.primaryLight};
   color: white;
   font-size: ${({ theme }) => theme.typography.fontSizes.xs};
   font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
   padding: 4px 8px;
   border-radius: 12px;
+  z-index: 1; // Ensure it appears above other elements
+  box-shadow: ${({ theme }) => theme.shadows.small}; // Add a shadow for better visibility
+  min-width: 20px; // Ensure there's enough space for the number
+  text-align: center; // Center the number
 `;
 
 const Footer = ({ 

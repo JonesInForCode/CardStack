@@ -109,11 +109,13 @@ const App = () => {
   const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
   const [simplifyMode, setSimplifyMode] = useState(false); // New state for "Don't Prioritize" feature
   const [showInfoModal, setShowInfoModal] = useState(false); // New state for info modal
-  
+
   // Pomodoro state
   const [pomodoroActive, setPomodoroActive] = useState(false);
   const [showBreakModal, setShowBreakModal] = useState(false);
-  
+  const [pomodoroEndTime, setPomodoroEndTime] = useState<number | null>(null);
+  const POMODORO_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+
   // Version check state
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const { updateAvailable, versionInfo, refreshApp } = useAppVersionCheck(APP_VERSION);
@@ -121,7 +123,7 @@ const App = () => {
   // Handle shuffle with animation
   const handleShuffle = () => {
     if (tasks.length <= 1) return; // Don't shuffle if not enough tasks
-    
+
     setIsShuffling(true);
     // Small delay to allow animation to show before actual shuffle happens
     setTimeout(() => {
@@ -134,37 +136,56 @@ const App = () => {
   const toggleSimplifyMode = () => {
     setSimplifyMode(prev => !prev);
   };
-  
+
   // Toggle Pomodoro mode
   const togglePomodoro = () => {
-    setPomodoroActive(prev => !prev);
+    setPomodoroActive(prev => {
+      const newActive = !prev;
+      // If turning on the timer, set the end time
+      if (newActive && !pomodoroEndTime) {
+        setPomodoroEndTime(Date.now() + POMODORO_DURATION);
+      }
+      // If turning off the timer, clear the end time
+      if (!newActive) {
+        setPomodoroEndTime(null);
+      }
+      return newActive;
+    });
+
     // If we're turning off Pomodoro while on break, hide the break modal
     if (showBreakModal) {
       setShowBreakModal(false);
     }
   };
-  
-  // Handle Pomodoro timer completion (show break modal)
+
+  // Update the handlePomodoroComplete function
   const handlePomodoroComplete = () => {
     setShowBreakModal(true);
+    setPomodoroEndTime(null); // Reset the timer end time
   };
-  
-  // Handle when the break is complete (restart the timer)
+
+  // Update the handleBreakComplete function
   const handleBreakComplete = () => {
     setShowBreakModal(false);
-    // Timer will restart automatically when pomodoroActive is true
+    // Start a new timer if Pomodoro is still active
+    if (pomodoroActive) {
+      setPomodoroEndTime(Date.now() + POMODORO_DURATION);
+    }
   };
-  
-  // Handle when the user wants to skip the break
+
+  // Update the handleSkipBreak function
   const handleSkipBreak = () => {
     setShowBreakModal(false);
-    // Timer will restart automatically when pomodoroActive is true
+    // Start a new timer if Pomodoro is still active
+    if (pomodoroActive) {
+      setPomodoroEndTime(Date.now() + POMODORO_DURATION);
+    }
   };
-  
+
   // Handle dismissing the update notification
   const handleDismissUpdate = () => {
     setUpdateDismissed(true);
-    
+
     // Store dismissal in session storage - will show again on page refresh
     sessionStorage.setItem('updateDismissed', 'true');
   };
@@ -192,15 +213,15 @@ const App = () => {
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, ANIMATION_DURATION.SPLASH_SCREEN);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <AppContainer>
       {showSplash && <SplashScreen onAnimationComplete={() => setShowSplash(false)} />}
-      
-      <Header 
+
+      <Header
         onShuffle={handleShuffle}
         taskCount={tasks.length}
         simplifyMode={simplifyMode}
@@ -217,7 +238,7 @@ const App = () => {
           <>
             <AnimatePresence mode="wait">
               {currentTask && (
-                <TaskCard 
+                <TaskCard
                   key={currentTask.id}
                   task={currentTask}
                   taskCount={tasks.length}
@@ -227,11 +248,12 @@ const App = () => {
                   isShuffling={isShuffling}
                   simplifyMode={simplifyMode}
                   pomodoroActive={pomodoroActive}
+                  pomodoroEndTime={pomodoroEndTime} // Pass the end time
                   onPomodoroComplete={handlePomodoroComplete}
                 />
               )}
             </AnimatePresence>
-            
+
             {/* Show snoozed tasks info if any tasks are snoozed */}
             {snoozedTasksCount > 0 && !showSnoozedTasks && (
               <SnoozedTasksInfo onClick={() => setShowSnoozedTasks(true)}>
@@ -262,7 +284,7 @@ const App = () => {
         )}
       </MainContent>
 
-      <Footer 
+      <Footer
         onAddTask={() => setShowAddTask(true)}
         onToggleCompletedTasks={() => setShowCompletedTasks(!showCompletedTasks)}
         showCompletedTasks={showCompletedTasks}
@@ -273,7 +295,7 @@ const App = () => {
 
       {/* Add PWA Install Prompt */}
       <PWAInstall />
-      
+
       {/* Version Update Notification */}
       <AnimatePresence>
         {updateAvailable && !updateDismissed && (
@@ -290,31 +312,31 @@ const App = () => {
         {showInfoModal && (
           <InfoModal onClose={() => setShowInfoModal(false)} />
         )}
-        
+
         {showAddTask && (
-          <AddTaskModal 
+          <AddTaskModal
             onClose={() => setShowAddTask(false)}
             onAddTask={addTask}
           />
         )}
-        
+
         {showCompletedTasks && (
-          <CompletedTasksDrawer 
+          <CompletedTasksDrawer
             completedTasks={completedTasks}
             onClose={() => setShowCompletedTasks(false)}
             onReturnToStack={returnToStack}
             onDeleteTask={deleteCompletedTask}
           />
         )}
-        
+
         {showSnoozedTasks && (
-          <SnoozedTasksDrawer 
+          <SnoozedTasksDrawer
             snoozedTasks={snoozedTasks}
             onClose={() => setShowSnoozedTasks(false)}
             onUnsnoozeTasks={unsnoozeTask}
           />
         )}
-        
+
         {/* Break Modal for Pomodoro */}
         {showBreakModal && (
           <BreakModal

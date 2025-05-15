@@ -14,6 +14,7 @@ interface TaskCardProps {
   isShuffling?: boolean;
   simplifyMode?: boolean; // New prop for simplify mode
   pomodoroActive?: boolean;
+  pomodoroEndTime?: number | null; // New prop for timer persistence
   onPomodoroComplete?: () => void;
 }
 
@@ -252,6 +253,7 @@ const TaskCard = ({
   isShuffling = false,
   simplifyMode = false,
   pomodoroActive = false,
+  pomodoroEndTime = null,
   onPomodoroComplete
 }: TaskCardProps) => {
   // Get current theme mode
@@ -297,7 +299,8 @@ const TaskCard = ({
       {pomodoroActive && onPomodoroComplete && (
         <PomodoroTimer 
           isRunning={pomodoroActive && !isShuffling && !isSnoozed} 
-          onTimerComplete={onPomodoroComplete} 
+          onTimerComplete={onPomodoroComplete}
+          endTime={pomodoroEndTime}
         />
       )}
       

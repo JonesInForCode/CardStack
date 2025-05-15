@@ -5,9 +5,8 @@ import styled from 'styled-components';
 interface PomodoroTimerProps {
   isRunning: boolean;
   onTimerComplete: () => void;
+  endTime: number | null; // New prop for external time management
 }
-
-const POMODORO_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
 const TimerContainer = styled.div`
   position: absolute;
@@ -30,9 +29,7 @@ const TimerIcon = styled.span`
   font-size: 1rem;
 `;
 
-const PomodoroTimer = ({ isRunning, onTimerComplete }: PomodoroTimerProps) => {
-  // Store the target end time instead of seconds remaining
-  const [endTime, setEndTime] = useState<number | null>(null);
+const PomodoroTimer = ({ isRunning, onTimerComplete, endTime }: PomodoroTimerProps) => {
   // Display time (in seconds)
   const [displayTimeRemaining, setDisplayTimeRemaining] = useState(25 * 60);
   // Reference to the interval ID for cleanup
@@ -56,29 +53,13 @@ const PomodoroTimer = ({ isRunning, onTimerComplete }: PomodoroTimerProps) => {
       onTimerComplete();
       clearInterval(intervalRef.current || undefined);
       intervalRef.current = null;
-      setEndTime(null);
     }
   }, [endTime, onTimerComplete]);
 
-  // Set up the timer when it starts running
+  // Reset completion flag when endTime changes
   useEffect(() => {
-    // When timer should start
-    if (isRunning && !endTime) {
-      // Reset completion flag
-      hasCompletedRef.current = false;
-      // Set end time 25 minutes from now
-      const newEndTime = Date.now() + POMODORO_DURATION;
-      setEndTime(newEndTime);
-    } 
-    // When timer should stop
-    else if (!isRunning && endTime) {
-      setEndTime(null);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
-  }, [isRunning, endTime]);
+    hasCompletedRef.current = false;
+  }, [endTime]);
 
   // Set up an interval to update the display
   useEffect(() => {

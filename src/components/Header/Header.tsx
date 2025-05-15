@@ -1,4 +1,4 @@
-// src/components/Header/Header.tsx with proper styled-components
+// src/components/Header/Header.tsx
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import DarkModeToggle from '../DarkModeToggle';
@@ -11,6 +11,7 @@ interface HeaderProps {
   onToggleSimplifyMode: () => void;
   pomodoroActive: boolean;
   onTogglePomodoro: () => void;
+  onOpenInfo: () => void;
 }
 
 const HeaderContainer = styled.header`
@@ -28,6 +29,13 @@ const TitleContainer = styled.div`
   flex: 1;
 `;
 
+const TitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
 const Title = styled.h1`
   font-size: ${({ theme }) => theme.typography.fontSizes.xxl};
   font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
@@ -40,6 +48,23 @@ const Subtitle = styled.p`
 const ButtonContainer = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const InfoButton = styled(motion.button)`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  opacity: 0.6;
+  padding: 0;
+  margin-top: 4px;
+  
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const ShuffleButton = styled(motion.button)`
@@ -98,18 +123,38 @@ const SimplifyIcon = () => (
   </svg>
 );
 
+// Info icon using SVG - smaller size for the title-adjacent version
+const InfoIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 16v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const Header = ({ 
   onShuffle, 
   taskCount, 
   simplifyMode, 
   onToggleSimplifyMode,
   pomodoroActive,
-  onTogglePomodoro
+  onTogglePomodoro,
+  onOpenInfo
 }: HeaderProps) => {
   return (
     <HeaderContainer>
       <TitleContainer>
-        <Title>CardStack</Title>
+        <TitleRow>
+          <Title>CardStack</Title>
+          <InfoButton
+            whileTap={{ scale: 0.9 }}
+            onClick={onOpenInfo}
+            title="About CardStack"
+            aria-label="About CardStack"
+          >
+            <InfoIcon />
+          </InfoButton>
+        </TitleRow>
         <Subtitle>Focus on one task at a time</Subtitle>
       </TitleContainer>
       <ButtonContainer>

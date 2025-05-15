@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.4] - 2025-05-15
+
+### Added
+- Info modal in the header to provide contact info to the creator
+
 ## [1.1.3] - 2025-05-15
 
 ### Fixed

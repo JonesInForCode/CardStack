@@ -8,10 +8,10 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import TaskCard from './components/Card';
 import AddTaskModal from './components/Modals';
+import { BreakModal, InfoModal } from './components/Modals';
 import { CompletedTasksDrawer, SnoozedTasksDrawer } from './components/Drawers';
 import Loading from './components/Loading';
 import PWAInstall from './components/PWAInstall';
-import { BreakModal } from './components/Modals';
 import UpdateNotification from './components/UpdateNotification';
 
 // Hooks
@@ -22,7 +22,7 @@ import { useAppVersionCheck } from './utils/version';
 import { ANIMATION_DURATION } from './constants';
 
 // Get the app version from package.json
-const APP_VERSION = '1.1.4'; // This should match your package.json version
+const APP_VERSION = '1.1.5'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -108,6 +108,7 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
   const [simplifyMode, setSimplifyMode] = useState(false); // New state for "Don't Prioritize" feature
+  const [showInfoModal, setShowInfoModal] = useState(false); // New state for info modal
   
   // Pomodoro state
   const [pomodoroActive, setPomodoroActive] = useState(false);
@@ -206,6 +207,7 @@ const App = () => {
         onToggleSimplifyMode={toggleSimplifyMode}
         pomodoroActive={pomodoroActive}
         onTogglePomodoro={togglePomodoro}
+        onOpenInfo={() => setShowInfoModal(true)}
       />
 
       <MainContent>
@@ -285,6 +287,10 @@ const App = () => {
 
       {/* Modals */}
       <AnimatePresence>
+        {showInfoModal && (
+          <InfoModal onClose={() => setShowInfoModal(false)} />
+        )}
+        
         {showAddTask && (
           <AddTaskModal 
             onClose={() => setShowAddTask(false)}

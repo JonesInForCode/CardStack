@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.0] - 2025-05-15
+
+### Added
+  - Improved styling of button components and disabled default browser text select
+
 ## [1.1.4] - 2025-05-15
 
 ### Added

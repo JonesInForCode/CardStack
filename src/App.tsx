@@ -22,7 +22,7 @@ import { useAppVersionCheck } from './utils/version';
 import { ANIMATION_DURATION } from './constants';
 
 // Get the app version from package.json
-const APP_VERSION = '1.1.5'; // This should match your package.json version
+const APP_VERSION = '1.2.0'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;

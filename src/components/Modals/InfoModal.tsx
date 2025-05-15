@@ -1,6 +1,6 @@
 // src/components/Modals/InfoModal.tsx
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+
 import styled from 'styled-components';
 
 interface InfoModalProps {
@@ -98,7 +98,7 @@ const KofiContainer = styled.div`
 
 const InfoModal = ({ onClose }: InfoModalProps) => {
   // Reference to track if we've loaded the script already
-  const kofiScriptLoaded = useRef(false);
+  
 
   // Function to open Ko-fi in a new window
   const handleKofiClick = () => {

@@ -1,20 +1,20 @@
+
 // vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // Explicitly set base path to root
+  // Standard base path
   base: '/',
-  // Ensure consistent asset hashing
   build: {
-    // Use a consistent hash method for asset filenames
+    // Add cache-busting with consistent hash algorithm
     rollupOptions: {
       output: {
-        // Use a simpler asset naming pattern 
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        // Simple asset naming with predictable hashes
+        entryFileNames: 'assets/[name].[hash:8].js',
+        chunkFileNames: 'assets/[name].[hash:8].js',
+        assetFileNames: 'assets/[name].[hash:8].[ext]'
       }
     }
   }

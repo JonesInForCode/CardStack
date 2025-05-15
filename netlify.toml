@@ -1,23 +1,16 @@
 [build]
-  command = "npm run build"
   publish = "dist"
+  command = "npm run build"
 
+# Force JavaScript MIME type
 [[headers]]
   for = "/assets/*.js"
   [headers.values]
     Content-Type = "application/javascript"
+    X-Content-Type-Options = "nosniff"
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
-[[headers]]
-  for = "/service-worker.js"
-  [headers.values]
-    Cache-Control = "max-age=0, no-cache, no-store, must-revalidate"
-
-[[headers]]
-  for = "/manifest.json"
-  [headers.values]
-    Cache-Control = "max-age=0, no-cache, no-store, must-revalidate"
-
-# This ensures proper routing for the single page application
+# SPA redirect
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -1,0 +1,5 @@
+# Headers for JavaScript files
+/assets/*.js
+  Content-Type: application/javascript
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff

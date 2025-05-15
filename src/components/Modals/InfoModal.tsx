@@ -1,5 +1,6 @@
 // src/components/Modals/InfoModal.tsx
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 interface InfoModalProps {
@@ -76,7 +77,34 @@ const CloseButton = styled(motion.button)`
   margin-top: ${({ theme }) => theme.spacing.md};
 `;
 
+const KofiContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: ${({ theme }) => theme.spacing.md} 0;
+  
+  // We'll style our custom button to match Ko-fi's usual appearance
+  button {
+    background-color: #72a4f2;
+    color: white;
+    border-radius: ${({ theme }) => theme.borderRadius.large};
+    padding: ${({ theme }) => theme.spacing.md};
+    display: flex;
+    align-items: center;
+    gap: ${({ theme }) => theme.spacing.xs};
+    font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+    box-shadow: ${({ theme }) => theme.shadows.medium};
+  }
+`;
+
 const InfoModal = ({ onClose }: InfoModalProps) => {
+  // Reference to track if we've loaded the script already
+  const kofiScriptLoaded = useRef(false);
+
+  // Function to open Ko-fi in a new window
+  const handleKofiClick = () => {
+    window.open('https://ko-fi.com/I2I21F0Q5J', '_blank');
+  };
+
   return (
     <ModalOverlay
       initial={{ opacity: 0 }}
@@ -95,6 +123,21 @@ const InfoModal = ({ onClose }: InfoModalProps) => {
         <Description>
           CardStack is a task management application designed specifically for people with ADHD and ASD. Unlike conventional task managers, CardStack presents one task at a time as a full-screen card that demands attention.
         </Description>
+        
+        <KofiContainer>
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={handleKofiClick}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 9.5V15.5C6 16.0523 6.44772 16.5 7 16.5H12.5C13.0523 16.5 13.5 16.0523 13.5 15.5V9.5C13.5 8.94772 13.0523 8.5 12.5 8.5H7C6.44772 8.5 6 8.94772 6 9.5Z" fill="white"/>
+              <path d="M11 8.5V16.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M13.5 12H17C17.5523 12 18 11.5523 18 11V10C18 9.44772 17.5523 9 17 9H13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M3 5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5Z" stroke="white" strokeWidth="1.5"/>
+            </svg>
+            Support me on Ko-fi
+          </motion.button>
+        </KofiContainer>
         
         <SectionTitle>Connect</SectionTitle>
         <LinkContainer>

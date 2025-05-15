@@ -12,12 +12,17 @@ import { CompletedTasksDrawer, SnoozedTasksDrawer } from './components/Drawers';
 import Loading from './components/Loading';
 import PWAInstall from './components/PWAInstall';
 import { BreakModal } from './components/Modals';
+import UpdateNotification from './components/UpdateNotification';
 
 // Hooks
 import { useTasks } from './hooks/useTasks';
+import { useAppVersionCheck } from './utils/version';
 
 // Constants
 import { ANIMATION_DURATION } from './constants';
+
+// Get the app version from package.json
+const APP_VERSION = '1.1.0'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -107,6 +112,10 @@ const App = () => {
   // Pomodoro state
   const [pomodoroActive, setPomodoroActive] = useState(false);
   const [showBreakModal, setShowBreakModal] = useState(false);
+  
+  // Version check state
+  const [updateDismissed, setUpdateDismissed] = useState(false);
+  const { updateAvailable, versionInfo, refreshApp } = useAppVersionCheck(APP_VERSION);
 
   // Handle shuffle with animation
   const handleShuffle = () => {
@@ -150,6 +159,20 @@ const App = () => {
     setShowBreakModal(false);
     // Timer will restart automatically when pomodoroActive is true
   };
+  
+  // Handle dismissing the update notification
+  const handleDismissUpdate = () => {
+    setUpdateDismissed(true);
+    
+    // Store dismissal in session storage - will show again on page refresh
+    sessionStorage.setItem('updateDismissed', 'true');
+  };
+
+  // Check if update was previously dismissed in this session
+  useEffect(() => {
+    const wasDismissed = sessionStorage.getItem('updateDismissed') === 'true';
+    setUpdateDismissed(wasDismissed);
+  }, []);
 
   // Hide splash screen after a delay
   useEffect(() => {
@@ -236,6 +259,17 @@ const App = () => {
 
       {/* Add PWA Install Prompt */}
       <PWAInstall />
+      
+      {/* Version Update Notification */}
+      <AnimatePresence>
+        {updateAvailable && !updateDismissed && (
+          <UpdateNotification
+            versionInfo={versionInfo}
+            onUpdate={refreshApp}
+            onDismiss={handleDismissUpdate}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Modals */}
       <AnimatePresence>

@@ -1,11 +1,13 @@
 // src/components/PomodoroTimer/PomodoroTimer.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 
 interface PomodoroTimerProps {
   isRunning: boolean;
   onTimerComplete: () => void;
 }
+
+const POMODORO_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
 const TimerContainer = styled.div`
   position: absolute;
@@ -29,35 +31,96 @@ const TimerIcon = styled.span`
 `;
 
 const PomodoroTimer = ({ isRunning, onTimerComplete }: PomodoroTimerProps) => {
-  const [timeRemaining, setTimeRemaining] = useState(25 * 60); // 25 minutes in seconds
+  // Store the target end time instead of seconds remaining
+  const [endTime, setEndTime] = useState<number | null>(null);
+  // Display time (in seconds)
+  const [displayTimeRemaining, setDisplayTimeRemaining] = useState(25 * 60);
+  // Reference to the interval ID for cleanup
+  const intervalRef = useRef<number | null>(null);
+  // Store if timer has completed to prevent multiple triggers
+  const hasCompletedRef = useRef(false);
 
-  useEffect(() => {
-    let timerId: number;
-
-    if (isRunning && timeRemaining > 0) {
-      timerId = window.setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            clearInterval(timerId);
-            onTimerComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+  // Function to calculate and update the time remaining
+  const updateTimeRemaining = useCallback(() => {
+    if (!endTime) return;
+    
+    const now = Date.now();
+    const remaining = Math.max(0, endTime - now);
+    const remainingSeconds = Math.ceil(remaining / 1000);
+    
+    setDisplayTimeRemaining(remainingSeconds);
+    
+    // If time's up and we haven't triggered completion yet
+    if (remaining <= 0 && !hasCompletedRef.current) {
+      hasCompletedRef.current = true;
+      onTimerComplete();
+      clearInterval(intervalRef.current || undefined);
+      intervalRef.current = null;
+      setEndTime(null);
     }
+  }, [endTime, onTimerComplete]);
+
+  // Set up the timer when it starts running
+  useEffect(() => {
+    // When timer should start
+    if (isRunning && !endTime) {
+      // Reset completion flag
+      hasCompletedRef.current = false;
+      // Set end time 25 minutes from now
+      const newEndTime = Date.now() + POMODORO_DURATION;
+      setEndTime(newEndTime);
+    } 
+    // When timer should stop
+    else if (!isRunning && endTime) {
+      setEndTime(null);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+  }, [isRunning, endTime]);
+
+  // Set up an interval to update the display
+  useEffect(() => {
+    if (endTime && isRunning) {
+      // Immediately update once
+      updateTimeRemaining();
+      
+      // Then set up the interval for updates
+      intervalRef.current = window.setInterval(updateTimeRemaining, 1000);
+    }
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [endTime, isRunning, updateTimeRemaining]);
+
+  // Add event listeners for when the app regains focus or visibility
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && endTime) {
+        updateTimeRemaining();
+      }
+    };
+
+    const handleFocus = () => {
+      if (endTime) {
+        updateTimeRemaining();
+      }
+    };
+
+    // Listen for visibility and focus events
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
-      clearInterval(timerId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, [isRunning, timeRemaining, onTimerComplete]);
-
-  // Reset timer when it starts running
-  useEffect(() => {
-    if (isRunning) {
-      setTimeRemaining(25 * 60);
-    }
-  }, [isRunning]);
+  }, [endTime, updateTimeRemaining]);
 
   // Format time as MM:SS
   const formatTime = (totalSeconds: number) => {
@@ -69,7 +132,7 @@ const PomodoroTimer = ({ isRunning, onTimerComplete }: PomodoroTimerProps) => {
   return (
     <TimerContainer>
       <TimerIcon>⏱️</TimerIcon>
-      {formatTime(timeRemaining)}
+      {formatTime(displayTimeRemaining)}
     </TimerContainer>
   );
 };

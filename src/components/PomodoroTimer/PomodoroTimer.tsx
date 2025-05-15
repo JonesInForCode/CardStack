@@ -1,6 +1,5 @@
 // src/components/PomodoroTimer/PomodoroTimer.tsx
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import styled from 'styled-components';
 
 interface PomodoroTimerProps {

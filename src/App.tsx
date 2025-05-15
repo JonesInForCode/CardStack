@@ -11,6 +11,7 @@ import AddTaskModal from './components/Modals';
 import { CompletedTasksDrawer, SnoozedTasksDrawer } from './components/Drawers';
 import Loading from './components/Loading';
 import PWAInstall from './components/PWAInstall';
+import { BreakModal } from './components/Modals';
 
 // Hooks
 import { useTasks } from './hooks/useTasks';
@@ -91,7 +92,7 @@ const App = () => {
     unsnoozeTask,
     addTask,
     returnToStack,
-    deleteCompletedTask, // New function from useTasks hook
+    deleteCompletedTask,
     shuffleDeck,
   } = useTasks();
 
@@ -102,6 +103,10 @@ const App = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
   const [simplifyMode, setSimplifyMode] = useState(false); // New state for "Don't Prioritize" feature
+  
+  // Pomodoro state
+  const [pomodoroActive, setPomodoroActive] = useState(false);
+  const [showBreakModal, setShowBreakModal] = useState(false);
 
   // Handle shuffle with animation
   const handleShuffle = () => {
@@ -119,6 +124,32 @@ const App = () => {
   const toggleSimplifyMode = () => {
     setSimplifyMode(prev => !prev);
   };
+  
+  // Toggle Pomodoro mode
+  const togglePomodoro = () => {
+    setPomodoroActive(prev => !prev);
+    // If we're turning off Pomodoro while on break, hide the break modal
+    if (showBreakModal) {
+      setShowBreakModal(false);
+    }
+  };
+  
+  // Handle Pomodoro timer completion (show break modal)
+  const handlePomodoroComplete = () => {
+    setShowBreakModal(true);
+  };
+  
+  // Handle when the break is complete (restart the timer)
+  const handleBreakComplete = () => {
+    setShowBreakModal(false);
+    // Timer will restart automatically when pomodoroActive is true
+  };
+  
+  // Handle when the user wants to skip the break
+  const handleSkipBreak = () => {
+    setShowBreakModal(false);
+    // Timer will restart automatically when pomodoroActive is true
+  };
 
   // Hide splash screen after a delay
   useEffect(() => {
@@ -133,12 +164,13 @@ const App = () => {
     <AppContainer>
       {showSplash && <SplashScreen onAnimationComplete={() => setShowSplash(false)} />}
       
-      {/* Updated Header with shuffle functionality and simplify mode toggle */}
       <Header 
         onShuffle={handleShuffle}
         taskCount={tasks.length}
         simplifyMode={simplifyMode}
         onToggleSimplifyMode={toggleSimplifyMode}
+        pomodoroActive={pomodoroActive}
+        onTogglePomodoro={togglePomodoro}
       />
 
       <MainContent>
@@ -157,6 +189,8 @@ const App = () => {
                   onSnooze={snoozeTask}
                   isShuffling={isShuffling}
                   simplifyMode={simplifyMode}
+                  pomodoroActive={pomodoroActive}
+                  onPomodoroComplete={handlePomodoroComplete}
                 />
               )}
             </AnimatePresence>
@@ -217,7 +251,7 @@ const App = () => {
             completedTasks={completedTasks}
             onClose={() => setShowCompletedTasks(false)}
             onReturnToStack={returnToStack}
-            onDeleteTask={deleteCompletedTask} // Pass the new delete function
+            onDeleteTask={deleteCompletedTask}
           />
         )}
         
@@ -226,6 +260,14 @@ const App = () => {
             snoozedTasks={snoozedTasks}
             onClose={() => setShowSnoozedTasks(false)}
             onUnsnoozeTasks={unsnoozeTask}
+          />
+        )}
+        
+        {/* Break Modal for Pomodoro */}
+        {showBreakModal && (
+          <BreakModal
+            onBreakComplete={handleBreakComplete}
+            onSkipBreak={handleSkipBreak}
           />
         )}
       </AnimatePresence>

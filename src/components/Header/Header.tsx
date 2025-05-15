@@ -2,12 +2,15 @@
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import DarkModeToggle from '../DarkModeToggle';
+import PomodoroToggle from '../PomodoroToggle';
 
 interface HeaderProps {
   onShuffle: () => void;
   taskCount: number;
   simplifyMode: boolean;
   onToggleSimplifyMode: () => void;
+  pomodoroActive: boolean;
+  onTogglePomodoro: () => void;
 }
 
 const HeaderContainer = styled.header`
@@ -99,7 +102,9 @@ const Header = ({
   onShuffle, 
   taskCount, 
   simplifyMode, 
-  onToggleSimplifyMode 
+  onToggleSimplifyMode,
+  pomodoroActive,
+  onTogglePomodoro
 }: HeaderProps) => {
   return (
     <HeaderContainer>
@@ -108,6 +113,10 @@ const Header = ({
         <Subtitle>Focus on one task at a time</Subtitle>
       </TitleContainer>
       <ButtonContainer>
+        <PomodoroToggle 
+          active={pomodoroActive} 
+          onToggle={onTogglePomodoro} 
+        />
         <DarkModeToggle />
         <SimplifyButton
           whileTap={{ scale: 0.9 }}

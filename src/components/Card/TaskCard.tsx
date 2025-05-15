@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task, type Priority, type Category } from '../../types/Task';
 import { useTheme } from '../../context/ThemeContext';
+import PomodoroTimer from '../PomodoroTimer';
 
 interface TaskCardProps {
   task: Task;
@@ -12,6 +13,8 @@ interface TaskCardProps {
   onSnooze: (hours: number) => void;
   isShuffling?: boolean;
   simplifyMode?: boolean; // New prop for simplify mode
+  pomodoroActive?: boolean;
+  onPomodoroComplete?: () => void;
 }
 
 // Get color for priority level - respects theme mode
@@ -116,6 +119,7 @@ const formatSnoozeTime = (date: Date): string => {
 
 // Styled components
 const CardContainer = styled(motion.div)<{ colorBg: string; colorBorder: string }>`
+  position: relative;
   width: 100%;
   max-width: 100%;
   padding: ${({ theme }) => theme.spacing.lg};
@@ -246,7 +250,9 @@ const TaskCard = ({
   onDismiss, 
   onSnooze,
   isShuffling = false,
-  simplifyMode = false
+  simplifyMode = false,
+  pomodoroActive = false,
+  onPomodoroComplete
 }: TaskCardProps) => {
   // Get current theme mode
   const { themeMode } = useTheme();
@@ -288,6 +294,13 @@ const TaskCard = ({
       variants={cardVariants}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
+      {pomodoroActive && onPomodoroComplete && (
+        <PomodoroTimer 
+          isRunning={pomodoroActive && !isShuffling && !isSnoozed} 
+          onTimerComplete={onPomodoroComplete} 
+        />
+      )}
+      
       <CardHeader>
         <CategoryEmoji>{getCategoryEmoji(task.category)}</CategoryEmoji>
         {!simplifyMode && (
@@ -313,7 +326,7 @@ const TaskCard = ({
           </SnoozeInfo>
         )}
       </InfoRow>
-      
+
       <ActionButtonsGrid>
         <CompleteButton
           whileTap={{ scale: 0.95 }}

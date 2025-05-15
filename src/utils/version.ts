@@ -74,9 +74,14 @@ export const useAppVersionCheck = (currentVersion: string, checkInterval = 36000
       setVersionInfo(latestVersionInfo);
       
       // Compare versions
-      if (isNewerVersion(currentVersion, latestVersionInfo.version) || latestVersionInfo.requiredUpdate) {
+      const hasNewerVersion = isNewerVersion(currentVersion, latestVersionInfo.version);
+      const needsUpdate = hasNewerVersion || latestVersionInfo.requiredUpdate;
+      
+      // Set updateAvailable based on condition - this ensures it gets set to false when appropriate
+      setUpdateAvailable(needsUpdate);
+      
+      if (needsUpdate) {
         console.log(`Update available: Current ${currentVersion}, Latest ${latestVersionInfo.version}`);
-        setUpdateAvailable(true);
       }
     } catch (error) {
       console.error('Error checking for updates:', error);

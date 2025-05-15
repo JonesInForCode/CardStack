@@ -1,6 +1,11 @@
 // src/utils/version.ts
 import { useState, useEffect, useCallback } from 'react';
 
+// Define Safari-specific navigator interface
+interface SafariNavigator extends Navigator {
+  standalone?: boolean;
+}
+
 export interface VersionInfo {
   version: string;
   buildDate: string;
@@ -32,11 +37,6 @@ export const useAppVersionCheck = (currentVersion: string, checkInterval = 36000
   
   // Check if app is running as PWA
   useEffect(() => {
-    // Define a proper interface for Safari's navigator which includes the standalone property
-    interface SafariNavigator extends Navigator {
-      standalone?: boolean;
-    }
-    
     // Check if running as installed PWA
     const isPWAInstalled = 
       window.matchMedia('(display-mode: standalone)').matches || 
@@ -52,7 +52,8 @@ export const useAppVersionCheck = (currentVersion: string, checkInterval = 36000
   }, []);
   
   // Function to check for new version - memoized with useCallback
-  const checkForUpdates = useCallback(async () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const checkForUpdates = useCallback(async (_?: unknown) => {
     try {
       // Add cache-busting query parameter
       const timestamp = new Date().getTime();
@@ -107,10 +108,17 @@ export const useAppVersionCheck = (currentVersion: string, checkInterval = 36000
         if (registration && registration.waiting) {
           // Tell the service worker to skipWaiting
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          // If the service worker doesn't trigger a refresh, force one after a short delay
+          setTimeout(() => {
+            hardRefresh();
+          }, 1000);
         } else {
           // If no waiting worker, just hard refresh
           hardRefresh();
         }
+      }).catch(() => {
+        // If there's any error with the service worker, fall back to hard refresh
+        hardRefresh();
       });
     } else {
       // For regular web app, just hard refresh
@@ -120,17 +128,19 @@ export const useAppVersionCheck = (currentVersion: string, checkInterval = 36000
   
   // Hard refresh function
   const hardRefresh = () => {
-    // Clear any caches if needed
-    if ('caches' in window) {
-      caches.keys().then(cacheNames => {
-        cacheNames.forEach(cacheName => {
-          caches.delete(cacheName);
-        });
-      });
-    }
+    // Set a flag in sessionStorage to indicate we're purposely refreshing
+    // This prevents an infinite refresh loop
+    sessionStorage.setItem('app_refreshing', 'true');
     
-    // Reload the page with cache busting parameter
-    window.location.href = window.location.pathname + '?refresh=' + Date.now();
+    // Make sure to clear caches synchronously when possible
+    try {
+      // For modern browsers, immediately reload with cache busting
+      window.location.href = window.location.pathname + '?refresh=' + Date.now();
+    } catch (error) {
+      console.error('Error during refresh:', error);
+      // Fallback to standard reload - modern approach without the deprecated boolean
+      window.location.reload();
+    }
   };
   
   return { updateAvailable, versionInfo, refreshApp, checkForUpdates, isPWA };

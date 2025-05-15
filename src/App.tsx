@@ -168,6 +168,18 @@ const App = () => {
     sessionStorage.setItem('updateDismissed', 'true');
   };
 
+  // Check if app was just refreshed for an update
+  useEffect(() => {
+    const wasRefreshing = sessionStorage.getItem('app_refreshing') === 'true';
+    if (wasRefreshing) {
+      // Clear the flag
+      sessionStorage.removeItem('app_refreshing');
+      // Make sure update dismissed is also cleared so it doesn't immediately show again
+      setUpdateDismissed(false);
+      sessionStorage.removeItem('updateDismissed');
+    }
+  }, []);
+
   // Check if update was previously dismissed in this session
   useEffect(() => {
     const wasDismissed = sessionStorage.getItem('updateDismissed') === 'true';

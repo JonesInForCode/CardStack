@@ -33,6 +33,13 @@ const formatSnoozeTime = (date: Date): string => {
 };
 
 // Styled components
+const DrawerOverlay = styled(motion.div)`
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: ${({ theme }) => theme.zIndices.modal - 1};
+`;
+
 const DrawerContainer = styled(motion.div)`
   position: fixed;
   bottom: 0;
@@ -138,51 +145,68 @@ const SnoozedTasksDrawer = ({
     if (!b.snoozedUntil) return -1;
     return a.snoozedUntil.getTime() - b.snoozedUntil.getTime();
   });
+  
+  // Handle click on drawer content to prevent propagation
+  const handleContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
 
   return (
-    <DrawerContainer
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      exit={{ y: '100%' }}
-      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-    >
-      <DrawerTitle>Snoozed Tasks</DrawerTitle>
+    <>
+      {/* Overlay that closes the drawer when clicked */}
+      <DrawerOverlay 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
       
-      {sortedTasks.length === 0 ? (
-        <EmptyMessage>No snoozed tasks</EmptyMessage>
-      ) : (
-        <TasksContainer>
-          {sortedTasks.map(task => (
-            <TaskItem key={task.id}>
-              <TaskInfo>
-                <TaskTitle>{task.title}</TaskTitle>
-                <TaskSnoozeTime>
-                  Returns in: {task.snoozedUntil ? formatSnoozeTime(task.snoozedUntil) : 'Unknown'}
-                </TaskSnoozeTime>
-              </TaskInfo>
-              <ButtonWrapper>
-                <UnsnoozeButton
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onUnsnoozeTasks(task.id)}
-                >
-                  Unsnooze
-                </UnsnoozeButton>
-                <UnsnoozeBadge>Now</UnsnoozeBadge>
-              </ButtonWrapper>
-            </TaskItem>
-          ))}
-        </TasksContainer>
-      )}
-      
-      <CloseButtonContainer>
-        <CloseButton
-          whileTap={{ scale: 0.95 }}
-          onClick={onClose}
-        >
-          Close
-        </CloseButton>
-      </CloseButtonContainer>
-    </DrawerContainer>
+      {/* Drawer content */}
+      <DrawerContainer
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        onClick={handleContentClick}
+      >
+        <DrawerTitle>Snoozed Tasks</DrawerTitle>
+        
+        {sortedTasks.length === 0 ? (
+          <EmptyMessage>No snoozed tasks</EmptyMessage>
+        ) : (
+          <TasksContainer>
+            {sortedTasks.map(task => (
+              <TaskItem key={task.id}>
+                <TaskInfo>
+                  <TaskTitle>{task.title}</TaskTitle>
+                  <TaskSnoozeTime>
+                    Returns in: {task.snoozedUntil ? formatSnoozeTime(task.snoozedUntil) : 'Unknown'}
+                  </TaskSnoozeTime>
+                </TaskInfo>
+                <ButtonWrapper>
+                  <UnsnoozeButton
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => onUnsnoozeTasks(task.id)}
+                  >
+                    Unsnooze
+                  </UnsnoozeButton>
+                  <UnsnoozeBadge>Now</UnsnoozeBadge>
+                </ButtonWrapper>
+              </TaskItem>
+            ))}
+          </TasksContainer>
+        )}
+        
+        <CloseButtonContainer>
+          <CloseButton
+            whileTap={{ scale: 0.95 }}
+            onClick={onClose}
+          >
+            Close
+          </CloseButton>
+        </CloseButtonContainer>
+      </DrawerContainer>
+    </>
   );
 };
 

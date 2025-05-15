@@ -34,7 +34,19 @@ CardStack addresses these challenges by focusing on a key neurodivergent-friendl
 
 ## Development Approach
 
-CardStack was "vibe coded" using AI assistance (Claude by Anthropic) to rapidly prototype and refine the application based on my specific neurodivergent needs. This collaborative human-AI approach allowed for fast iteration while maintaining high-quality code.
+This project was developed with assistance from AI coding tools. As the maintainer, I believe in transparent and responsible AI usage in software development.
+
+### My AI-Assisted Development Process:
+
+- I personally review, understand, and verify all AI-generated code before implementation
+- All code undergoes security vulnerability scanning and testing regardless of its origin
+- I maintain complete responsibility for the codebase functionality, security, and maintenance
+- I believe AI should serve humanity's long-term well-being with human benefit at its foundation
+- AI functions as an amplifier of human capabilities rather than a replacement for expertise
+
+While AI helps me create solutions more efficiently, the architectural decisions, problem framing, and quality assurance remain firmly in human hands. I'm committed to producing reliable, secure, and well-engineered software regardless of which tools assist in the code creation process.
+
+Questions about my development approach? Feel free to open an issue for discussion.
 
 ## Tech Stack
 
@@ -66,7 +78,7 @@ CardStack is released under the GNU Affero General Public License v3.0 with spec
 
 This is just the beginning! Future updates and refinements planned include:
 
-- Pomodoro Mode
+- Pomodoro Mode (Implemented)
 - Auto prioritization
 - Auto breaktime notification
 - Mobile app notifications

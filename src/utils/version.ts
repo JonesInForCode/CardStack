@@ -15,10 +15,27 @@ export interface VersionInfo {
 
 // Function to compare versions (semantic versioning)
 export const isNewerVersion = (current: string, latest: string): boolean => {
-  if (current === latest) return false;
+  // Ensure clean strings by trimming
+  const cleanCurrent = current.trim();
+  const cleanLatest = latest.trim();
   
-  const currentParts = current.split('.').map(Number);
-  const latestParts = latest.split('.').map(Number);
+  // String equality check - should catch exact matches
+  if (cleanCurrent === cleanLatest) {
+    console.log('Version strings match exactly:', cleanCurrent, cleanLatest);
+    return false;
+  }
+  
+  // Parse into numbers for reliable comparison
+  const currentParts = cleanCurrent.split('.').map(part => parseInt(part, 10));
+  const latestParts = cleanLatest.split('.').map(part => parseInt(part, 10));
+  
+  // Log the parsed versions for debugging
+  console.log('Comparing versions:', {
+    current: cleanCurrent,
+    latest: cleanLatest,
+    currentParts,
+    latestParts
+  });
   
   // Compare major, minor, patch versions
   for (let i = 0; i < 3; i++) {
@@ -73,15 +90,42 @@ export const useAppVersionCheck = (currentVersion: string, checkInterval = 36000
       const latestVersionInfo: VersionInfo = await response.json();
       setVersionInfo(latestVersionInfo);
       
+      // Force requiredUpdate to false if versions match
+      if (currentVersion.trim() === latestVersionInfo.version.trim()) {
+        console.log('Version match detected, forcing requiredUpdate to false');
+        latestVersionInfo.requiredUpdate = false;
+      }
+      
+      // Log the raw version data to help debugging
+      console.log('Version check:', {
+        current: currentVersion,
+        latest: latestVersionInfo.version,
+        requiredUpdate: latestVersionInfo.requiredUpdate
+      });
+      
       // Compare versions
       const hasNewerVersion = isNewerVersion(currentVersion, latestVersionInfo.version);
-      const needsUpdate = hasNewerVersion || latestVersionInfo.requiredUpdate;
       
-      // Set updateAvailable based on condition - this ensures it gets set to false when appropriate
+      // Double check - if versions are exactly the same, there's no new version regardless
+      // This is a safety check in case isNewerVersion has an issue
+      const isSameVersion = currentVersion.trim() === latestVersionInfo.version.trim();
+      
+      // Only show update if there's a newer version OR required update AND not the same version
+      const needsUpdate = (hasNewerVersion || latestVersionInfo.requiredUpdate) && !isSameVersion;
+      
+      console.log('Update needed?', needsUpdate, {
+        hasNewerVersion,
+        requiredUpdate: latestVersionInfo.requiredUpdate,
+        isSameVersion
+      });
+      
+      // Set updateAvailable based on condition
       setUpdateAvailable(needsUpdate);
       
       if (needsUpdate) {
         console.log(`Update available: Current ${currentVersion}, Latest ${latestVersionInfo.version}`);
+      } else {
+        console.log(`No update needed: Current ${currentVersion}, Latest ${latestVersionInfo.version}`);
       }
     } catch (error) {
       console.error('Error checking for updates:', error);

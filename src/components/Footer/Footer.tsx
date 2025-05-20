@@ -9,6 +9,8 @@ interface FooterProps {
   snoozedTasksCount: number;
   onToggleSnoozedTasks: () => void;
   showSnoozedTasks: boolean;
+  onToggleCategoryDecks: () => void;
+  showCategoryDecks: boolean;
 }
 
 const FooterContainer = styled.footer`
@@ -54,6 +56,14 @@ const SnoozedTasksButton = styled(motion.button)<{ hasSnoozed: boolean }>`
   overflow: visible; // Ensure the badge can extend beyond the button's boundaries
 `;
 
+const CategoryDecksButton = styled(motion.button)`
+  padding: ${({ theme }) => theme.spacing.md};
+  background-color: ${({ theme }) => theme.colors.primaryDark};
+  color: white;
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  `;
+
 const SnoozeBadge = styled.span`
   position: absolute;
   top: -12px; // Moved up to ensure visibility
@@ -76,7 +86,9 @@ const Footer = ({
   showCompletedTasks,
   snoozedTasksCount,
   onToggleSnoozedTasks,
-  showSnoozedTasks
+  showSnoozedTasks,
+  onToggleCategoryDecks,
+  showCategoryDecks
 }: FooterProps) => {
   return (
     <FooterContainer>
@@ -87,6 +99,13 @@ const Footer = ({
         + Add Task
       </AddTaskButton>
       <ButtonGroup>
+        <CategoryDecksButton
+          whileTap={{ scale: 0.95 }}
+          onClick={onToggleCategoryDecks}
+          >
+            {showCategoryDecks ? 'Hide Decks' : 'Decks'}
+          </CategoryDecksButton>
+
         {snoozedTasksCount > 0 && (
           <SnoozedTasksButton
             whileTap={{ scale: 0.95 }}

@@ -1,5 +1,5 @@
 // public/service-worker.js
-const CACHE_NAME = 'cardstack-v1.2.0';
+const CACHE_NAME = 'cardstack-v1.3.0';
 const VERSION_CHECK_INTERVAL = 60 * 60 * 1000; // Check version every hour (in milliseconds)
 
 // Assets to cache on install

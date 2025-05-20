@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 import TaskCard from './components/Card';
 import AddTaskModal from './components/Modals';
 import { BreakModal, InfoModal } from './components/Modals';
-import { CompletedTasksDrawer, SnoozedTasksDrawer } from './components/Drawers';
+import { CompletedTasksDrawer, SnoozedTasksDrawer, CategoryDecksDrawer } from './components/Drawers';
 import Loading from './components/Loading';
 import PWAInstall from './components/PWAInstall';
 import UpdateNotification from './components/UpdateNotification';
@@ -20,9 +20,10 @@ import { useAppVersionCheck } from './utils/version';
 
 // Constants
 import { ANIMATION_DURATION } from './constants';
+import { type Category, getCategoryEmoji } from './types/Task';
 
 // Get the app version from package.json
-const APP_VERSION = '1.2.0'; // This should match your package.json version
+const APP_VERSION = '1.3.0'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -82,12 +83,22 @@ const AddTaskButton = styled.button`
   box-shadow: ${({ theme }) => theme.shadows.small};
 `;
 
+const CategoryHeading = styled.h2`
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.fontSizes.xl};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
+`;
+
 const App = () => {
   // Task-related state and functions from custom hook
   const {
-    tasks,
+    tasks: allTasks,
     completedTasks,
-    currentTask,
+    currentTask: hookCurrentTask,
     isLoading,
     snoozedTasks,
     snoozedTasksCount,
@@ -99,16 +110,19 @@ const App = () => {
     returnToStack,
     deleteCompletedTask,
     shuffleDeck,
+    setCurrentTaskIndex,
   } = useTasks();
 
   // UI state
   const [showAddTask, setShowAddTask] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
   const [showSnoozedTasks, setShowSnoozedTasks] = useState(false);
+  const [showCategoryDecks, setShowCategoryDecks] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
   const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
-  const [simplifyMode, setSimplifyMode] = useState(false); // New state for "Don't Prioritize" feature
-  const [showInfoModal, setShowInfoModal] = useState(false); // New state for info modal
+  const [simplifyMode, setSimplifyMode] = useState(false); // State for "Don't Prioritize" feature
+  const [showInfoModal, setShowInfoModal] = useState(false); // State for info modal
 
   // Pomodoro state
   const [pomodoroActive, setPomodoroActive] = useState(false);
@@ -119,6 +133,35 @@ const App = () => {
   // Version check state
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const { updateAvailable, versionInfo, refreshApp } = useAppVersionCheck(APP_VERSION);
+
+  // Helper function to trigger card animation
+const triggerCardAnimation = () => {
+  setIsShuffling(true);
+  setTimeout(() => {
+    setIsShuffling(false);
+  }, 300);
+};
+
+  // Filter tasks based on the selected category
+  const filteredTasks = selectedCategory
+    ? allTasks.filter(task => task.category === selectedCategory)
+    : allTasks;
+
+  // Get visible tasks (tasks that aren't snoozed)
+  const tasks = filteredTasks.filter(task => !task.snoozedUntil || task.snoozedUntil <= new Date());
+
+  // Update currentTaskIndex when selected category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      // When a category is selected, find the first task with that category
+      const firstTaskIndex = allTasks.findIndex(
+        task => task.category === selectedCategory && (!task.snoozedUntil || task.snoozedUntil <= new Date())
+      );
+      if (firstTaskIndex !== -1) {
+        setCurrentTaskIndex(firstTaskIndex);
+      }
+    }
+  }, [selectedCategory, allTasks, setCurrentTaskIndex]);
 
   // Handle shuffle with animation
   const handleShuffle = () => {
@@ -135,6 +178,21 @@ const App = () => {
   // Toggle simplify mode (don't prioritize)
   const toggleSimplifyMode = () => {
     setSimplifyMode(prev => !prev);
+  };
+
+  // Toggle Category Decks drawer
+  const toggleCategoryDecks = () => {
+    setShowCategoryDecks(!showCategoryDecks);
+  };
+
+  // Handler for selecting a category
+  const handleSelectCategory = (category: string | null) => {
+    // Only trigger animation if we're changing categories
+    if (category !== selectedCategory) {
+      triggerCardAnimation();
+    }
+    setSelectedCategory(category);
+    setShowCategoryDecks(false); // Close the drawer after selection
   };
 
   // Toggle Pomodoro mode
@@ -232,15 +290,21 @@ const App = () => {
       />
 
       <MainContent>
+        {selectedCategory && (
+          <CategoryHeading>
+            {getCategoryEmoji(selectedCategory as Category)} {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Deck
+          </CategoryHeading>
+        )}
+
         {isLoading ? (
           <Loading message="Loading your stack..." />
         ) : tasks.length > 0 ? (
           <>
             <AnimatePresence mode="wait">
-              {currentTask && (
+              {hookCurrentTask && (
                 <TaskCard
-                  key={currentTask.id}
-                  task={currentTask}
+                  key={hookCurrentTask.id}
+                  task={hookCurrentTask}
                   taskCount={tasks.length}
                   onComplete={completeTask}
                   onDismiss={dismissTask}
@@ -248,7 +312,7 @@ const App = () => {
                   isShuffling={isShuffling}
                   simplifyMode={simplifyMode}
                   pomodoroActive={pomodoroActive}
-                  pomodoroEndTime={pomodoroEndTime} // Pass the end time
+                  pomodoroEndTime={pomodoroEndTime}
                   onPomodoroComplete={handlePomodoroComplete}
                 />
               )}
@@ -273,10 +337,18 @@ const App = () => {
             </AddTaskButton>
           </EmptyStateContainer>
         ) : (
-          // Empty state when no tasks exist
+          // Empty state when no tasks exist or all are filtered out
           <EmptyStateContainer>
-            <EmptyStateTitle>Your stack is empty!</EmptyStateTitle>
-            <EmptyStateText>Add a new task to get started.</EmptyStateText>
+            <EmptyStateTitle>
+              {selectedCategory 
+                ? `No tasks in the ${selectedCategory} deck!` 
+                : 'Your stack is empty!'}
+            </EmptyStateTitle>
+            <EmptyStateText>
+              {selectedCategory 
+                ? `Try adding a task with the "${selectedCategory}" category or select a different deck.`
+                : 'Add a new task to get started.'}
+            </EmptyStateText>
             <AddTaskButton onClick={() => setShowAddTask(true)}>
               Add a task
             </AddTaskButton>
@@ -291,6 +363,8 @@ const App = () => {
         snoozedTasksCount={snoozedTasksCount}
         onToggleSnoozedTasks={() => setShowSnoozedTasks(!showSnoozedTasks)}
         showSnoozedTasks={showSnoozedTasks}
+        onToggleCategoryDecks={toggleCategoryDecks}
+        showCategoryDecks={showCategoryDecks}
       />
 
       {/* Add PWA Install Prompt */}
@@ -334,6 +408,15 @@ const App = () => {
             snoozedTasks={snoozedTasks}
             onClose={() => setShowSnoozedTasks(false)}
             onUnsnoozeTasks={unsnoozeTask}
+          />
+        )}
+
+        {showCategoryDecks && (
+          <CategoryDecksDrawer
+            tasks={allTasks.filter(task => !task.snoozedUntil || task.snoozedUntil <= new Date())}
+            onClose={() => setShowCategoryDecks(false)}
+            onSelectCategory={handleSelectCategory}
+            selectedCategory={selectedCategory}
           />
         )}
 

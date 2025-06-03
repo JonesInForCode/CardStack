@@ -16,6 +16,7 @@ interface TaskCardProps {
   pomodoroActive?: boolean;
   pomodoroEndTime?: number | null; // New prop for timer persistence
   onPomodoroComplete?: () => void;
+  onOpenSubtasks?: () => void;
 }
 
 // Get color for priority level - respects theme mode
@@ -142,6 +143,22 @@ const CategoryEmoji = styled.span`
   font-size: 2rem;
 `;
 
+const SubtaskIndicator = styled(motion.button)`
+  position: absolute;
+  top: ${({ theme }) => theme.spacing.md};
+  left: ${({ theme }) => theme.spacing.md};
+  background-color: ${({ theme }) => theme.colors.primaryLight};
+  color: white;
+  padding: 6px 12px;
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: ${({ theme }) => theme.shadows.small};
+`;
+
 const PriorityLabel = styled.span<{ textColor: string }>`
   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
@@ -254,7 +271,8 @@ const TaskCard = ({
   simplifyMode = false,
   pomodoroActive = false,
   pomodoroEndTime = null,
-  onPomodoroComplete
+  onPomodoroComplete,
+  onOpenSubtasks
 }: TaskCardProps) => {
   // Get current theme mode
   const { themeMode } = useTheme();
@@ -374,6 +392,15 @@ const TaskCard = ({
       <TaskCount>
         {taskCount} task{taskCount !== 1 ? 's' : ''} in your stack
       </TaskCount>
+      {task.hasSubtasks && task.subtasks && task.subtasks.length > 0 && onOpenSubtasks && (
+        <SubtaskIndicator
+          whileTap={{ scale: 0.95 }}
+          onClick={onOpenSubtasks}
+          >
+            <span>🔗</span>
+            {task.subtasks.filter(st => !st.isCompleted).length} subtasks
+          </SubtaskIndicator>
+      )}
     </CardContainer>
   );
 };

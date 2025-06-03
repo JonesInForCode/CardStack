@@ -306,6 +306,96 @@ export const useTasks = () => {
     });
   }, []);
 
+  // Add subtask to a main task
+const addSubtask = useCallback((parentTaskId: string, subtask: PartialTask) => {
+  if (!subtask.title) return;
+  
+  const newSubtask: Task = {
+    id: `${parentTaskId}-sub-${Date.now()}`,
+    title: subtask.title || '',
+    description: subtask.description || '',
+    priority: subtask.priority || Priorities.MEDIUM,
+    category: subtask.category || Categories.PERSONAL,
+    isCompleted: false,
+    isSubtask: true,
+    parentTaskId: parentTaskId,
+  };
+  
+  setAllTasks(prevTasks => 
+    prevTasks.map(task => {
+      if (task.id === parentTaskId) {
+        const updatedSubtasks = [...(task.subtasks || []), newSubtask];
+        return {
+          ...task,
+          hasSubtasks: true,
+          subtasks: updatedSubtasks
+        };
+      }
+      return task;
+    })
+  );
+}, []);
+
+// Complete a subtask
+const completeSubtask = useCallback((parentTaskId: string, subtaskId: string) => {
+  triggerHapticFeedback('complete');
+  
+  setAllTasks(prevTasks =>
+    prevTasks.map(task => {
+      if (task.id === parentTaskId && task.subtasks) {
+        const updatedSubtasks = task.subtasks.map(st =>
+          st.id === subtaskId ? { ...st, isCompleted: true } : st
+        );
+        return {
+          ...task,
+          subtasks: updatedSubtasks
+        };
+      }
+      return task;
+    })
+  );
+}, []);
+
+// Cancel (remove) a subtask
+const cancelSubtask = useCallback((parentTaskId: string, subtaskId: string) => {
+  triggerHapticFeedback('dismiss');
+  
+  setAllTasks(prevTasks =>
+    prevTasks.map(task => {
+      if (task.id === parentTaskId && task.subtasks) {
+        const updatedSubtasks = task.subtasks.filter(st => st.id !== subtaskId);
+        return {
+          ...task,
+          subtasks: updatedSubtasks,
+          hasSubtasks: updatedSubtasks.length > 0
+        };
+      }
+      return task;
+    })
+  );
+}, []);
+
+// Upgrade subtask to main task
+const upgradeSubtaskToTask = useCallback((parentTaskId: string, subtaskId: string) => {
+  const parentTask = allTasks.find(t => t.id === parentTaskId);
+  const subtask = parentTask?.subtasks?.find(st => st.id === subtaskId);
+  
+  if (!subtask) return;
+  
+  // Remove from parent's subtasks
+  cancelSubtask(parentTaskId, subtaskId);
+  
+  // Add as main task
+  const upgradedTask: Task = {
+    ...subtask,
+    id: Date.now().toString(),
+    isSubtask: false,
+    parentTaskId: undefined,
+  };
+  
+  setAllTasks(prevTasks => [...prevTasks, upgradedTask]);
+}, [allTasks, cancelSubtask]);
+
   return {
     tasks,
     completedTasks,
@@ -323,5 +413,9 @@ export const useTasks = () => {
     returnToStack,
     deleteCompletedTask, // Add the new function to the return object
     shuffleDeck,
+    addSubtask,
+    completeSubtask,
+    cancelSubtask,
+    upgradeSubtaskToTask,
   };
 };

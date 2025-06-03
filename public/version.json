@@ -1,6 +1,6 @@
 {
-  "version": "1.3.0",
-  "buildDate": "2025-05-15T12:00:00Z",
-  "requiredUpdate": false,
-  "updateMessage": "CardStack has been updated with new features, please refresh the application to install!"
+  "version": "1.4.0",
+  "buildDate": "2025-06-03T08:58:49.931Z",
+  "requiredUpdate": true,
+  "updateMessage": "Version 1.4.0 is now available with new features. Please refresh to update!"
 }

@@ -322,6 +322,7 @@ const App = () => {
               setShowSubtasks(false);
             }}
             onClose={() => setShowSubtasks(false)}
+            onAddSubtask={() => setShowAddSubtask(true)}
           />
         ) : (
           <>

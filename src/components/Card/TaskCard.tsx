@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { type Task, type Priority, type Category } from '../../types/Task';
 import { useTheme } from '../../context/ThemeContext';
 import PomodoroTimer from '../PomodoroTimer';
+import { useState } from 'react';
+import ContextMenu from '../ContextMenu';
 
 interface TaskCardProps {
   task: Task;
@@ -301,6 +303,48 @@ const TaskCard = ({
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === 'dark';
 
+  // Context menu state
+const [showContextMenu, setShowContextMenu] = useState(false);
+const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+
+const handleSubtaskBadgeClick = (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const rect = e.currentTarget.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const menuWidth = 160; // Approximate menu width
+  
+  // Position menu to the left if it would go off-screen on the right
+  const x = rect.right + menuWidth > viewportWidth 
+    ? rect.left - menuWidth - 5 
+    : rect.right + 5;
+    
+  setMenuPosition({
+    x: Math.max(5, x), // Ensure it doesn't go off the left edge
+    y: rect.top
+  });
+  setShowContextMenu(true);
+};
+
+const handleContextMenu = (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const rect = e.currentTarget.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const menuWidth = 160;
+  
+  const x = rect.right + menuWidth > viewportWidth 
+    ? rect.left - menuWidth - 5 
+    : rect.right + 5;
+    
+  setMenuPosition({
+    x: Math.max(5, x),
+    y: rect.top
+  });
+  setShowContextMenu(true);
+};
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
     initial: isShuffling
@@ -338,14 +382,25 @@ const TaskCard = ({
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
       {task.hasSubtasks && task.subtasks && task.subtasks.length > 0 ? (
-        <SubtaskBadge
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
-          onClick={onOpenSubtasks}
-        >
-          <span>🔗</span>
-          {task.subtasks.filter(st => !st.isCompleted).length}
-        </SubtaskBadge>
+        <>
+          <SubtaskBadge
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={handleSubtaskBadgeClick}
+            onContextMenu={handleContextMenu}
+            title="Click for options"
+          >
+            <span>🔗</span>
+            {task.subtasks.filter(st => !st.isCompleted).length}
+          </SubtaskBadge>
+          <ContextMenu
+            isOpen={showContextMenu}
+            position={menuPosition}
+            onClose={() => setShowContextMenu(false)}
+            onAddSubtask={onAddSubtask!}
+            onViewSubtasks={onOpenSubtasks!}
+          />
+        </>
       ) : onAddSubtask && (
         <FloatingSubtaskButton
           whileTap={{ scale: 0.9 }}

@@ -31,6 +31,7 @@ CardStack addresses these challenges by focusing on a key neurodivergent-friendl
 - **Dark/Light Mode**: Adapts to visual sensitivity preferences
 - **PWA Support**: Install as a standalone app on mobile devices
 - **Shuffle Feature**: Mix up your tasks when you need a fresh perspective
+- **Subtasks (NEW)**: Break down complex tasks into smaller, manageable steps
 
 ## Development Approach
 

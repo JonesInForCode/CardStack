@@ -13,6 +13,8 @@ import { CompletedTasksDrawer, SnoozedTasksDrawer, CategoryDecksDrawer } from '.
 import Loading from './components/Loading';
 import PWAInstall from './components/PWAInstall';
 import UpdateNotification from './components/UpdateNotification';
+import SubtaskView from './components/SubtaskView';
+import AddSubtaskModal from './components/Modals/AddSubtaskModal';
 
 // Hooks
 import { useTasks } from './hooks/useTasks';
@@ -20,10 +22,10 @@ import { useAppVersionCheck } from './utils/version';
 
 // Constants
 import { ANIMATION_DURATION } from './constants';
-import { type Category, getCategoryEmoji } from './types/Task';
+import { type Category, type PartialTask, getCategoryEmoji } from './types/Task';
 
 // Get the app version from package.json
-const APP_VERSION = '1.3.0'; // This should match your package.json version
+const APP_VERSION = '1.4.0'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -111,6 +113,10 @@ const App = () => {
     deleteCompletedTask,
     shuffleDeck,
     setCurrentTaskIndex,
+    addSubtask,
+    completeSubtask,
+    cancelSubtask,
+    upgradeSubtaskToTask,
   } = useTasks();
 
   // UI state
@@ -130,17 +136,21 @@ const App = () => {
   const [pomodoroEndTime, setPomodoroEndTime] = useState<number | null>(null);
   const POMODORO_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
+  // Subtask state
+  const [showSubtasks, setShowSubtasks] = useState(false);
+  const [showAddSubtask, setShowAddSubtask] = useState(false);
+
   // Version check state
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const { updateAvailable, versionInfo, refreshApp } = useAppVersionCheck(APP_VERSION);
 
   // Helper function to trigger card animation
-const triggerCardAnimation = () => {
-  setIsShuffling(true);
-  setTimeout(() => {
-    setIsShuffling(false);
-  }, 300);
-};
+  const triggerCardAnimation = () => {
+    setIsShuffling(true);
+    setTimeout(() => {
+      setIsShuffling(false);
+    }, 300);
+  };
 
   // Filter tasks based on the selected category
   const filteredTasks = selectedCategory
@@ -173,6 +183,17 @@ const triggerCardAnimation = () => {
       shuffleDeck();
       setIsShuffling(false);
     }, 300);
+  };
+
+  // Handle Subtasks
+  const handleOpenSubtasks = () => {
+    setShowSubtasks(true);
+  };
+
+  const handleAddSubtask = (subtask: PartialTask) => {
+    if (hookCurrentTask) {
+      addSubtask(hookCurrentTask.id, subtask);
+    }
   };
 
   // Toggle simplify mode (don't prioritize)
@@ -290,69 +311,88 @@ const triggerCardAnimation = () => {
       />
 
       <MainContent>
-        {selectedCategory && (
-          <CategoryHeading>
-            {getCategoryEmoji(selectedCategory as Category)} {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Deck
-          </CategoryHeading>
-        )}
-
-        {isLoading ? (
-          <Loading message="Loading your stack..." />
-        ) : tasks.length > 0 ? (
+        {showSubtasks && hookCurrentTask && hookCurrentTask.subtasks ? (
+          <SubtaskView
+            parentTask={hookCurrentTask}
+            subtasks={hookCurrentTask.subtasks}
+            onSubtaskComplete={(subtaskId) => completeSubtask(hookCurrentTask.id, subtaskId)}
+            onSubtaskCancel={(subtaskId) => cancelSubtask(hookCurrentTask.id, subtaskId)}
+            onUpgradeToTask={(subtaskId) => {
+              upgradeSubtaskToTask(hookCurrentTask.id, subtaskId);
+              setShowSubtasks(false);
+            }}
+            onClose={() => setShowSubtasks(false)}
+            onAddSubtask={() => setShowAddSubtask(true)}
+          />
+        ) : (
           <>
-            <AnimatePresence mode="wait">
-              {hookCurrentTask && (
-                <TaskCard
-                  key={hookCurrentTask.id}
-                  task={hookCurrentTask}
-                  taskCount={tasks.length}
-                  onComplete={completeTask}
-                  onDismiss={dismissTask}
-                  onSnooze={snoozeTask}
-                  isShuffling={isShuffling}
-                  simplifyMode={simplifyMode}
-                  pomodoroActive={pomodoroActive}
-                  pomodoroEndTime={pomodoroEndTime}
-                  onPomodoroComplete={handlePomodoroComplete}
-                />
-              )}
-            </AnimatePresence>
+            {selectedCategory && (
+              <CategoryHeading>
+                {getCategoryEmoji(selectedCategory as Category)} {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Deck
+              </CategoryHeading>
+            )}
 
-            {/* Show snoozed tasks info if any tasks are snoozed */}
-            {snoozedTasksCount > 0 && !showSnoozedTasks && (
-              <SnoozedTasksInfo onClick={() => setShowSnoozedTasks(true)}>
-                {snoozedTasksCount} task{snoozedTasksCount !== 1 ? 's' : ''} snoozed
-              </SnoozedTasksInfo>
+            {isLoading ? (
+              <Loading message="Loading your stack..." />
+            ) : tasks.length > 0 ? (
+              <>
+                <AnimatePresence mode="wait">
+                  {hookCurrentTask && (
+                    <TaskCard
+                      key={hookCurrentTask.id}
+                      task={hookCurrentTask}
+                      taskCount={tasks.length}
+                      onComplete={completeTask}
+                      onDismiss={dismissTask}
+                      onSnooze={snoozeTask}
+                      isShuffling={isShuffling}
+                      simplifyMode={simplifyMode}
+                      pomodoroActive={pomodoroActive}
+                      pomodoroEndTime={pomodoroEndTime}
+                      onPomodoroComplete={handlePomodoroComplete}
+                      onOpenSubtasks={handleOpenSubtasks}
+                      onAddSubtask={() => setShowAddSubtask(true)}
+                    />
+                  )}
+                </AnimatePresence>
+
+                {/* Show snoozed tasks info if any tasks are snoozed */}
+                {snoozedTasksCount > 0 && !showSnoozedTasks && (
+                  <SnoozedTasksInfo onClick={() => setShowSnoozedTasks(true)}>
+                    {snoozedTasksCount} task{snoozedTasksCount !== 1 ? 's' : ''} snoozed
+                  </SnoozedTasksInfo>
+                )}
+              </>
+            ) : snoozedTasksCount > 0 ? (
+              // Show a special message when all tasks are snoozed
+              <EmptyStateContainer>
+                <EmptyStateTitle>All tasks are snoozed!</EmptyStateTitle>
+                <EmptyStateText>
+                  You have {snoozedTasksCount} snoozed task{snoozedTasksCount !== 1 ? 's' : ''} that will return later.
+                </EmptyStateText>
+                <AddTaskButton onClick={() => setShowAddTask(true)}>
+                  Add a new task
+                </AddTaskButton>
+              </EmptyStateContainer>
+            ) : (
+              // Empty state when no tasks exist or all are filtered out
+              <EmptyStateContainer>
+                <EmptyStateTitle>
+                  {selectedCategory
+                    ? `No tasks in the ${selectedCategory} deck!`
+                    : 'Your stack is empty!'}
+                </EmptyStateTitle>
+                <EmptyStateText>
+                  {selectedCategory
+                    ? `Try adding a task with the "${selectedCategory}" category or select a different deck.`
+                    : 'Add a new task to get started.'}
+                </EmptyStateText>
+                <AddTaskButton onClick={() => setShowAddTask(true)}>
+                  Add a task
+                </AddTaskButton>
+              </EmptyStateContainer>
             )}
           </>
-        ) : snoozedTasksCount > 0 ? (
-          // Show a special message when all tasks are snoozed
-          <EmptyStateContainer>
-            <EmptyStateTitle>All tasks are snoozed!</EmptyStateTitle>
-            <EmptyStateText>
-              You have {snoozedTasksCount} snoozed task{snoozedTasksCount !== 1 ? 's' : ''} that will return later.
-            </EmptyStateText>
-            <AddTaskButton onClick={() => setShowAddTask(true)}>
-              Add a new task
-            </AddTaskButton>
-          </EmptyStateContainer>
-        ) : (
-          // Empty state when no tasks exist or all are filtered out
-          <EmptyStateContainer>
-            <EmptyStateTitle>
-              {selectedCategory 
-                ? `No tasks in the ${selectedCategory} deck!` 
-                : 'Your stack is empty!'}
-            </EmptyStateTitle>
-            <EmptyStateText>
-              {selectedCategory 
-                ? `Try adding a task with the "${selectedCategory}" category or select a different deck.`
-                : 'Add a new task to get started.'}
-            </EmptyStateText>
-            <AddTaskButton onClick={() => setShowAddTask(true)}>
-              Add a task
-            </AddTaskButton>
-          </EmptyStateContainer>
         )}
       </MainContent>
 
@@ -383,6 +423,13 @@ const triggerCardAnimation = () => {
 
       {/* Modals */}
       <AnimatePresence>
+        {showAddSubtask && hookCurrentTask && (
+          <AddSubtaskModal
+            parentTaskTitle={hookCurrentTask.title}
+            onClose={() => setShowAddSubtask(false)}
+            onAddSubtask={handleAddSubtask}
+          />
+        )}
         {showInfoModal && (
           <InfoModal onClose={() => setShowInfoModal(false)} />
         )}

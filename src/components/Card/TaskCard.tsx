@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { type Task, type Priority, type Category } from '../../types/Task';
 import { useTheme } from '../../context/ThemeContext';
 import PomodoroTimer from '../PomodoroTimer';
+import { useState } from 'react';
+import ContextMenu from '../ContextMenu';
 
 interface TaskCardProps {
   task: Task;
@@ -16,6 +18,8 @@ interface TaskCardProps {
   pomodoroActive?: boolean;
   pomodoroEndTime?: number | null; // New prop for timer persistence
   onPomodoroComplete?: () => void;
+  onOpenSubtasks?: () => void;
+  onAddSubtask?: () => void;
 }
 
 // Get color for priority level - respects theme mode
@@ -100,26 +104,26 @@ const formatSnoozeTime = (date: Date): string => {
   const now = new Date();
   const diffMs = date.getTime() - now.getTime();
   const diffMins = Math.round(diffMs / 60000);
-  
+
   if (diffMins < 60) {
     return `in ${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
   }
-  
+
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) {
     return `in ${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
   }
-  
+
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays === 1) {
     return 'tomorrow';
   }
-  
+
   return `in ${diffDays} days`;
 };
 
 // Styled components
-const CardContainer = styled(motion.div)<{ colorBg: string; colorBorder: string }>`
+const CardContainer = styled(motion.div) <{ colorBg: string; colorBorder: string }>`
   position: relative;
   width: 100%;
   max-width: 100%;
@@ -244,42 +248,123 @@ const TaskCount = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
 `;
 
-const TaskCard = ({ 
-  task, 
-  taskCount, 
-  onComplete, 
-  onDismiss, 
+const FloatingSubtaskButton = styled(motion.button)`
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: ${({ theme }) => theme.colors.primaryLight};
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+  font-size: 1rem;
+  z-index: 2;
+  border: 2px solid ${({ theme }) => theme.colors.cardBackground};
+`;
+
+const SubtaskBadge = styled(motion.div)`
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: ${({ theme }) => theme.colors.primaryLight};
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+  z-index: 2;
+  border: 2px solid ${({ theme }) => theme.colors.cardBackground};
+  cursor: pointer;
+`;
+
+const TaskCard = ({
+  task,
+  taskCount,
+  onComplete,
+  onDismiss,
   onSnooze,
   isShuffling = false,
   simplifyMode = false,
   pomodoroActive = false,
   pomodoroEndTime = null,
-  onPomodoroComplete
+  onPomodoroComplete,
+  onOpenSubtasks,
+  onAddSubtask
 }: TaskCardProps) => {
   // Get current theme mode
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === 'dark';
+
+  // Context menu state
+const [showContextMenu, setShowContextMenu] = useState(false);
+const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+
+const handleSubtaskBadgeClick = (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
   
+  const rect = e.currentTarget.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const menuWidth = 160; // Approximate menu width
+  
+  // Position menu to the left if it would go off-screen on the right
+  const x = rect.right + menuWidth > viewportWidth 
+    ? rect.left - menuWidth - 5 
+    : rect.right + 5;
+    
+  setMenuPosition({
+    x: Math.max(5, x), // Ensure it doesn't go off the left edge
+    y: rect.top
+  });
+  setShowContextMenu(true);
+};
+
+const handleContextMenu = (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const rect = e.currentTarget.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const menuWidth = 160;
+  
+  const x = rect.right + menuWidth > viewportWidth 
+    ? rect.left - menuWidth - 5 
+    : rect.right + 5;
+    
+  setMenuPosition({
+    x: Math.max(5, x),
+    y: rect.top
+  });
+  setShowContextMenu(true);
+};
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
-    initial: isShuffling 
-      ? { opacity: 1, y: 0, scale: 1, rotateY: 0 } 
+    initial: isShuffling
+      ? { opacity: 1, y: 0, scale: 1, rotateY: 0 }
       : { opacity: 0, y: 50, scale: 0.8 },
     animate: { opacity: 1, y: 0, scale: 1, rotateY: 0 },
-    exit: isShuffling 
+    exit: isShuffling
       ? { opacity: 0, rotateY: 90, transition: { duration: 0.3 } }
       : { opacity: 0, y: -50, scale: 0.8 },
-    shuffling: { 
-      opacity: 0.8, 
-      scale: 0.9, 
+    shuffling: {
+      opacity: 0.8,
+      scale: 0.9,
       rotateY: 90,
-      transition: { duration: 0.3 } 
+      transition: { duration: 0.3 }
     }
   };
 
   // Determine which color scheme to use based on simplifyMode and theme
-  const colors = simplifyMode 
-    ? getSimplifiedColor(task.id, isDarkMode) 
+  const colors = simplifyMode
+    ? getSimplifiedColor(task.id, isDarkMode)
     : getPriorityColors(task.priority, isDarkMode);
 
   // Check if task is snoozed
@@ -296,14 +381,45 @@ const TaskCard = ({
       variants={cardVariants}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
+      {task.hasSubtasks && task.subtasks && task.subtasks.length > 0 ? (
+        <>
+          <SubtaskBadge
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={handleSubtaskBadgeClick}
+            onContextMenu={handleContextMenu}
+            title="Click for options"
+          >
+            <span>🔗</span>
+            {task.subtasks.filter(st => !st.isCompleted).length}
+          </SubtaskBadge>
+          <ContextMenu
+            isOpen={showContextMenu}
+            position={menuPosition}
+            onClose={() => setShowContextMenu(false)}
+            onAddSubtask={onAddSubtask!}
+            onViewSubtasks={onOpenSubtasks!}
+          />
+        </>
+      ) : onAddSubtask && (
+        <FloatingSubtaskButton
+          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.1 }}
+          onClick={onAddSubtask}
+          title="Add subtask"
+          aria-label="Add subtask to this task"
+        >
+          +
+        </FloatingSubtaskButton>
+      )}
       {pomodoroActive && onPomodoroComplete && (
-        <PomodoroTimer 
-          isRunning={pomodoroActive && !isShuffling && !isSnoozed} 
+        <PomodoroTimer
+          isRunning={pomodoroActive && !isShuffling && !isSnoozed}
           onTimerComplete={onPomodoroComplete}
           endTime={pomodoroEndTime}
         />
       )}
-      
+
       <CardHeader>
         <CategoryEmoji>{getCategoryEmoji(task.category)}</CategoryEmoji>
         {!simplifyMode && (
@@ -312,17 +428,17 @@ const TaskCard = ({
           </PriorityLabel>
         )}
       </CardHeader>
-      
+
       <CardTitle>{task.title}</CardTitle>
       <CardDescription>{task.description}</CardDescription>
-      
+
       <InfoRow>
         {task.dueDate && (
           <DueDate>
             Due: {task.dueDate.toLocaleDateString()}
           </DueDate>
         )}
-        
+
         {isSnoozed && task.snoozedUntil && (
           <SnoozeInfo>
             Returns {formatSnoozeTime(task.snoozedUntil)}
@@ -346,7 +462,7 @@ const TaskCard = ({
           Dismiss
         </DismissButton>
       </ActionButtonsGrid>
-      
+
       <SnoozeButtonsGrid>
         <SnoozeButton
           whileTap={{ scale: 0.95 }}
@@ -370,7 +486,7 @@ const TaskCard = ({
           Tomorrow
         </SnoozeButton>
       </SnoozeButtonsGrid>
-      
+
       <TaskCount>
         {taskCount} task{taskCount !== 1 ? 's' : ''} in your stack
       </TaskCount>

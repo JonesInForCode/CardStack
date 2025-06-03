@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0] - 2025-06-03
+
+### Added
+- **Subtasks/Card Chaining** - Break down complex tasks into smaller subtasks
+  - Add subtasks to any main task via the 🔗 button in the header
+  - View subtasks in a dedicated side-by-side interface
+  - Complete, cancel, or upgrade subtasks to main tasks
+  - Visual indicators show tasks with subtasks
+  - Subtasks persist with their parent tasks
+
+### Changed
+- Task data structure now includes subtask support (non-breaking for existing tasks)
+
 ## [1.2.0] - 2025-05-15
 
 ### Added

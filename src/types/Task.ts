@@ -26,6 +26,10 @@ export interface Task {
   completedDate?: Date;
   snoozedUntil?: Date;
   isCompleted: boolean;
+  hasSubtasks?: boolean;
+  subtasks?: Task[];
+  parentTaskId?: string;
+  isSubtask?: boolean;
 }
 
 export type PartialTask = Partial<Task>;

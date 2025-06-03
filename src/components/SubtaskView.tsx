@@ -27,6 +27,12 @@ const ParentCardContainer = styled(motion.div)`
   opacity: 0.7;
   transform: scale(0.9);
   transform-origin: left center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.85;
+    }
 `;
 
 const ParentCard = styled.div`
@@ -45,22 +51,6 @@ const ParentTitle = styled.h3`
 const SubtaskContainer = styled.div`
   flex: 1;
   position: relative;
-`;
-
-const CloseButton = styled(motion.button)`
-  position: absolute;
-  top: ${({ theme }) => theme.spacing.sm};
-  right: ${({ theme }) => theme.spacing.sm};
-  background-color: ${({ theme }) => theme.colors.primaryDark};
-  color: white;
-  padding: ${({ theme }) => theme.spacing.sm};
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
 `;
 
 const EmptyState = styled.div`
@@ -131,6 +121,8 @@ const SubtaskView = ({
         initial={{ x: 0, opacity: 1, scale: 1 }}
         animate={{ x: -20, opacity: 0.7, scale: 0.9 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        onClick={onClose}
+        whileTap={{ scale: 0.85 }}
       >
         <ParentCard>
           <ParentTitle>{parentTask.title}</ParentTitle>
@@ -141,12 +133,6 @@ const SubtaskView = ({
       </ParentCardContainer>
 
       <SubtaskContainer>
-        <CloseButton
-          whileTap={{ scale: 0.9 }}
-          onClick={onClose}
-        >
-          ✕
-        </CloseButton>
 
         <AnimatePresence mode="wait">
           {currentSubtask ? (

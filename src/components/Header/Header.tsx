@@ -9,8 +9,6 @@ interface HeaderProps {
   taskCount: number;
   simplifyMode: boolean;
   onToggleSimplifyMode: () => void;
-  currentTaskHasSubtasks: boolean;
-  onAddSubtask: () => void;
   pomodoroActive: boolean;
   onTogglePomodoro: () => void;
   onOpenInfo: () => void;
@@ -98,20 +96,6 @@ const SimplifyButton = styled(motion.button) <{ active: boolean }>`
   justify-content: center;
   box-shadow: ${({ theme }) => theme.shadows.small};
 `;
-
-const AddSubtaskButton = styled(motion.button)`
-  background-color: ${({ theme }) => theme.colors.primaryLight};
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: ${({ theme }) => theme.shadows.small};
-  font-size: 1.2rem;
-`;
-
 // Shuffle icon using SVG for better control
 const ShuffleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -155,8 +139,6 @@ const Header = ({
   pomodoroActive,
   onTogglePomodoro,
   onOpenInfo,
-  currentTaskHasSubtasks,
-  onAddSubtask
 }: HeaderProps) => {
   return (
     <HeaderContainer>
@@ -189,16 +171,6 @@ const Header = ({
         >
           <SimplifyIcon />
         </SimplifyButton>
-        {currentTaskHasSubtasks && (
-          <AddSubtaskButton
-            whileTap={{ scale: 0.9 }}
-            onClick={onAddSubtask}
-            title="Add subtask"
-            aria-label="Add subtask to current task"
-          >
-            🔗
-          </AddSubtaskButton>
-        )}
         <ShuffleButton
           whileTap={{ scale: 0.9, rotate: 180 }}
           onClick={onShuffle}

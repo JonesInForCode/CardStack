@@ -308,8 +308,6 @@ const App = () => {
         pomodoroActive={pomodoroActive}
         onTogglePomodoro={togglePomodoro}
         onOpenInfo={() => setShowInfoModal(true)}
-        currentTaskHasSubtasks={!!hookCurrentTask}
-        onAddSubtask={() => setShowAddSubtask(true)}
       />
 
       <MainContent>
@@ -352,6 +350,7 @@ const App = () => {
                       pomodoroEndTime={pomodoroEndTime}
                       onPomodoroComplete={handlePomodoroComplete}
                       onOpenSubtasks={handleOpenSubtasks}
+                      onAddSubtask={() => setShowAddSubtask(true)}
                     />
                   )}
                 </AnimatePresence>

@@ -192,8 +192,8 @@ const TaskNavigationView = ({
 
         if (isSignificantHorizontalSwipe && Math.abs(deltaX) > Math.abs(deltaY)) {
             // Horizontal swipe takes priority
-            if (deltaX > 0 || velocityX > velocityThreshold) {
-                // Swiped right - add subtask
+            if (deltaX < 0 || velocityX < -velocityThreshold) {
+                // Swiped left - add subtask
                 console.log('Right swipe detected - adding subtask');
                 if (onAddSubtask) {
                     onAddSubtask();

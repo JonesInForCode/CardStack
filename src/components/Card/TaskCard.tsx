@@ -265,6 +265,19 @@ const FloatingSubtaskButton = styled(motion.button)`
   font-size: 1.2rem;
   z-index: 2;
   border: 2px solid ${({ theme }) => theme.colors.cardBackground};
+  
+  /* Override global button hover behavior completely */
+  &:hover:not(:disabled) {
+    filter: brightness(1.1) !important;
+    transform: translateY(-50%) scale(1.05) !important; /* Force the centering to stay */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  &:active:not(:disabled) {
+    filter: brightness(0.9) !important;
+    transform: translateY(-50%) scale(0.95) !important; /* Force the centering to stay */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+  }
 `;
 
 const SubtaskBadge = styled(motion.div)`
@@ -305,47 +318,47 @@ const TaskCard = ({
   const isDarkMode = themeMode === 'dark';
 
   // Context menu state
-const [showContextMenu, setShowContextMenu] = useState(false);
-const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
-const handleSubtaskBadgeClick = (e: React.MouseEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-  
-  const rect = e.currentTarget.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
-  const menuWidth = 160; // Approximate menu width
-  
-  // Position menu to the left if it would go off-screen on the right
-  const x = rect.right + menuWidth > viewportWidth 
-    ? rect.left - menuWidth - 5 
-    : rect.right + 5;
-    
-  setMenuPosition({
-    x: Math.max(5, x), // Ensure it doesn't go off the left edge
-    y: rect.top
-  });
-  setShowContextMenu(true);
-};
+  const handleSubtaskBadgeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-const handleContextMenu = (e: React.MouseEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-  
-  const rect = e.currentTarget.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
-  const menuWidth = 160;
-  
-  const x = rect.right + menuWidth > viewportWidth 
-    ? rect.left - menuWidth - 5 
-    : rect.right + 5;
-    
-  setMenuPosition({
-    x: Math.max(5, x),
-    y: rect.top
-  });
-  setShowContextMenu(true);
-};
+    const rect = e.currentTarget.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const menuWidth = 160; // Approximate menu width
+
+    // Position menu to the left if it would go off-screen on the right
+    const x = rect.right + menuWidth > viewportWidth
+      ? rect.left - menuWidth - 5
+      : rect.right + 5;
+
+    setMenuPosition({
+      x: Math.max(5, x), // Ensure it doesn't go off the left edge
+      y: rect.top
+    });
+    setShowContextMenu(true);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const menuWidth = 160;
+
+    const x = rect.right + menuWidth > viewportWidth
+      ? rect.left - menuWidth - 5
+      : rect.right + 5;
+
+    setMenuPosition({
+      x: Math.max(5, x),
+      y: rect.top
+    });
+    setShowContextMenu(true);
+  };
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
     initial: isShuffling

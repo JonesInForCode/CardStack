@@ -396,6 +396,25 @@ const upgradeSubtaskToTask = useCallback((parentTaskId: string, subtaskId: strin
   setAllTasks(prevTasks => [...prevTasks, upgradedTask]);
 }, [allTasks, cancelSubtask]);
 
+// Navigation methods
+const navigateToPrevious = useCallback(() => {
+  setCurrentTaskIndex(prevIndex => {
+    if (prevIndex > 0) {
+      return prevIndex - 1;
+    }
+    return prevIndex;
+  });
+}, []);
+
+const navigateToNext = useCallback(() => {
+  setCurrentTaskIndex(prevIndex => {
+    if (prevIndex < tasks.length - 1) {
+      return prevIndex + 1;
+    }
+    return prevIndex;
+  });
+}, [tasks.length]);
+
   return {
     tasks,
     completedTasks,
@@ -411,11 +430,13 @@ const upgradeSubtaskToTask = useCallback((parentTaskId: string, subtaskId: strin
     unsnoozeTask,
     addTask,
     returnToStack,
-    deleteCompletedTask, // Add the new function to the return object
+    deleteCompletedTask,
     shuffleDeck,
     addSubtask,
     completeSubtask,
     cancelSubtask,
     upgradeSubtaskToTask,
+    navigateToPrevious,
+    navigateToNext
   };
 };

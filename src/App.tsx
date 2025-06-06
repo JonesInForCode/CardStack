@@ -6,7 +6,6 @@ import styled from 'styled-components';
 import SplashScreen from './components/Splash';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import TaskCard from './components/Card';
 import AddTaskModal from './components/Modals';
 import { BreakModal, InfoModal } from './components/Modals';
 import { CompletedTasksDrawer, SnoozedTasksDrawer, CategoryDecksDrawer } from './components/Drawers';
@@ -15,6 +14,7 @@ import PWAInstall from './components/PWAInstall';
 import UpdateNotification from './components/UpdateNotification';
 import SubtaskView from './components/SubtaskView';
 import AddSubtaskModal from './components/Modals/AddSubtaskModal';
+import TaskNavigationView from './components/TaskNavigationView';
 
 // Hooks
 import { useTasks } from './hooks/useTasks';
@@ -25,7 +25,7 @@ import { ANIMATION_DURATION } from './constants';
 import { type Category, type PartialTask, getCategoryEmoji } from './types/Task';
 
 // Get the app version from package.json
-const APP_VERSION = '1.4.0'; // This should match your package.json version
+const APP_VERSION = '1.5.0'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -101,6 +101,7 @@ const App = () => {
     tasks: allTasks,
     completedTasks,
     currentTask: hookCurrentTask,
+    currentTaskIndex,
     isLoading,
     snoozedTasks,
     snoozedTasksCount,
@@ -117,6 +118,8 @@ const App = () => {
     completeSubtask,
     cancelSubtask,
     upgradeSubtaskToTask,
+    navigateToPrevious,
+    navigateToNext,
   } = useTasks();
 
   // UI state
@@ -338,13 +341,17 @@ const App = () => {
               <>
                 <AnimatePresence mode="wait">
                   {hookCurrentTask && (
-                    <TaskCard
+                    <TaskNavigationView
                       key={hookCurrentTask.id}
                       task={hookCurrentTask}
                       taskCount={tasks.length}
+                      currentIndex={currentTaskIndex}
                       onComplete={completeTask}
                       onDismiss={dismissTask}
                       onSnooze={snoozeTask}
+                      onNavigatePrevious={navigateToPrevious}
+                      onNavigateNext={navigateToNext}
+                      onAddTask={() => setShowAddTask(true)}
                       isShuffling={isShuffling}
                       simplifyMode={simplifyMode}
                       pomodoroActive={pomodoroActive}
@@ -355,6 +362,7 @@ const App = () => {
                     />
                   )}
                 </AnimatePresence>
+
 
                 {/* Show snoozed tasks info if any tasks are snoozed */}
                 {snoozedTasksCount > 0 && !showSnoozedTasks && (

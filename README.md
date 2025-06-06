@@ -3,13 +3,13 @@
 ![CardStack Logo](public/pwa-icons/icon-128x128.png)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-CardStack is a task management application specifically designed for people with ADHD and ASD (Autism Spectrum Disorder). Unlike conventional to-do list apps, CardStack presents one task at a time as a full-screen card that demands attention and decision, with dismissed tasks circling back around for future consideration.
+CardStack is a task management application specifically designed for people with ADHD. Unlike conventional to-do list apps, CardStack presents one task at a time as a full-screen card that demands attention and decision, with dismissed tasks circling back around for future consideration.
 
 **Try it live: [cardstacktask.netlify.app](https://cardstacktask.netlify.app)**
 
 ## Purpose
 
-I created CardStack for myself as a person with ADHD and ASD who struggles with traditional task management systems. Standard to-do lists often lead to:
+I created CardStack for myself as a person with ADHD who struggles with traditional task management systems. Standard to-do lists often lead to:
 
 - Decision paralysis when faced with too many options
 - "Out of sight, out of mind" forgetting of tasks not visually present
@@ -68,12 +68,11 @@ Contributions to make CardStack better for the neurodivergent community are welc
 
 ## Usage License
 
-CardStack is released under the GNU Affero General Public License v3.0 with specific intentions for the neurodivergent community:
+CardStack is released under the GNU Affero General Public License v3.0 with specific intentions:
 
 - **Non-Commercial Use**: This project and all forks must remain free to use
 - **Open Source**: All derivative works must maintain open-source status
 - **Attribution**: Please credit the original project
-- **Neurodivergent Focus**: The intention of CardStack is to benefit the neurodivergent community without charge or profit
 
 ## Future Plans
 
@@ -81,12 +80,13 @@ This is just the beginning! Future updates and refinements planned include:
 
 - Pomodoro Mode (Implemented)
 - Auto prioritization
-- Auto breaktime notification
+- Auto breaktime notification (Implemented partially in Pomodoro mode)
 - Mobile app notifications
 - Improved offline functionality
 - More customizable snooze intervals
 - Enhanced task categorization options
 - Release to Android (maybe)
+- Release to iOS (maybe)
 
 ## Installation
 
@@ -109,10 +109,12 @@ npm run dev
 
 ## Supporting CardStack
 
-CardStack is and will always remain free for the neurodivergent community. If you've found it helpful and want to support continued development, consider:
+CardStack is and will always remain free but donations and sponsership are welcome. If you've found it helpful and want to support continued development, consider:
 
 - Star the repository
 - Share with others who might benefit
 - Contribute code or feedback
+- Donate (Ko-Fi link avaliable on the live application)
+- Sponser
 
 Remember: Different brains need different tools. CardStack aims to be one of those tools for people who think differently.

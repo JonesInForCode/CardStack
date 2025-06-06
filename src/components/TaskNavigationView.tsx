@@ -105,38 +105,24 @@ const TaskNavigationView = ({
     const hasPrevious = currentIndex > 0;
     const hasNext = currentIndex < taskCount - 1;
 
-    // Detect mobile device with more reliable method
+    // Detect touch capability - simpler and more reliable
     useEffect(() => {
-        const checkMobile = () => {
-            // Check screen size (most reliable indicator)
-            const isSmallScreen = window.innerWidth <= 768;
+        const checkTouchCapable = () => {
+            // If the device has touch capability, enable gestures
+            const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-            // Check user agent for mobile devices
-            const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            // Check if primarily touch-based (not just touch-capable)
-            const isPrimaryTouch = 'ontouchstart' in window &&
-                navigator.maxTouchPoints > 0 &&
-                !window.matchMedia('(pointer: fine)').matches;
-
-            // Mobile if: small screen AND (mobile user agent OR primary touch)
-            const mobile = isSmallScreen && (isMobileUserAgent || isPrimaryTouch);
-
-            // Temporary debug log - remove this later
-            console.log('Mobile detection:', {
-                isSmallScreen,
-                isMobileUserAgent,
-                isPrimaryTouch,
-                isMobile: mobile,
+            console.log('Touch detection:', {
+                hasTouchSupport,
+                maxTouchPoints: navigator.maxTouchPoints,
                 screenWidth: window.innerWidth
             });
 
-            setIsMobile(mobile);
+            setIsMobile(hasTouchSupport);
         };
 
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        checkTouchCapable();
+        window.addEventListener('resize', checkTouchCapable);
+        return () => window.removeEventListener('resize', checkTouchCapable);
     }, []);
 
     // Handle pan gesture start
@@ -223,12 +209,10 @@ const TaskNavigationView = ({
     return (
         <NavigationContainer>
             <TaskContentWrapper
-                // Add pan gesture handling for mobile
-                {...(isMobile && {
-                    onPanStart: handlePanStart,
-                    onPan: handlePan,
-                    onPanEnd: handlePanEnd
-                })}
+                // Always enable pan gestures on touch-capable devices
+                onPanStart={handlePanStart}
+                onPan={handlePan}
+                onPanEnd={handlePanEnd}
             >
                 {/* Top navigation area */}
                 <NavigationArea

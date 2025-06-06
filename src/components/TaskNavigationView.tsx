@@ -6,22 +6,22 @@ import { type Task } from '../types/Task';
 import TaskCard from './Card/TaskCard';
 
 interface TaskNavigationViewProps {
-  task: Task;
-  taskCount: number;
-  currentIndex: number;
-  onComplete: () => void;
-  onDismiss: () => void;
-  onSnooze: (hours: number) => void;
-  onNavigatePrevious: () => void;
-  onNavigateNext: () => void;
-  onAddTask: () => void;
-  isShuffling?: boolean;
-  simplifyMode?: boolean;
-  pomodoroActive?: boolean;
-  pomodoroEndTime?: number | null;
-  onPomodoroComplete?: () => void;
-  onOpenSubtasks?: () => void;
-  onAddSubtask?: () => void;
+    task: Task;
+    taskCount: number;
+    currentIndex: number;
+    onComplete: () => void;
+    onDismiss: () => void;
+    onSnooze: (hours: number) => void;
+    onNavigatePrevious: () => void;
+    onNavigateNext: () => void;
+    onAddTask: () => void;
+    isShuffling?: boolean;
+    simplifyMode?: boolean;
+    pomodoroActive?: boolean;
+    pomodoroEndTime?: number | null;
+    onPomodoroComplete?: () => void;
+    onOpenSubtasks?: () => void;
+    onAddSubtask?: () => void;
 }
 
 const NavigationContainer = styled.div`
@@ -39,7 +39,7 @@ const TaskContentWrapper = styled(motion.div)`
   width: 100%;
 `;
 
-const NavigationArea = styled(motion.div)<{ position: 'top' | 'bottom'; isMobile: boolean }>`
+const NavigationArea = styled(motion.div) <{ position: 'top' | 'bottom'; isMobile: boolean }>`
   position: absolute;
   left: 0;
   right: 0;
@@ -80,244 +80,256 @@ const AddTaskButton = styled(motion.button)`
 `;
 
 const TaskNavigationView = ({
-  task,
-  taskCount,
-  currentIndex,
-  onComplete,
-  onDismiss,
-  onSnooze,
-  onNavigatePrevious,
-  onNavigateNext,
-  onAddTask,
-  isShuffling = false,
-  simplifyMode = false,
-  pomodoroActive = false,
-  pomodoroEndTime = null,
-  onPomodoroComplete,
-  onOpenSubtasks,
-  onAddSubtask
+    task,
+    taskCount,
+    currentIndex,
+    onComplete,
+    onDismiss,
+    onSnooze,
+    onNavigatePrevious,
+    onNavigateNext,
+    onAddTask,
+    isShuffling = false,
+    simplifyMode = false,
+    pomodoroActive = false,
+    pomodoroEndTime = null,
+    onPomodoroComplete,
+    onOpenSubtasks,
+    onAddSubtask
 }: TaskNavigationViewProps) => {
-  const [showTopNav, setShowTopNav] = useState(false);
-  const [showBottomNav, setShowBottomNav] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
-  
-  const hasPrevious = currentIndex > 0;
-  const hasNext = currentIndex < taskCount - 1;
+    const [showTopNav, setShowTopNav] = useState(false);
+    const [showBottomNav, setShowBottomNav] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
 
-  // Detect mobile device with more reliable method
-  useEffect(() => {
-    const checkMobile = () => {
-      // Check screen size (most reliable indicator)
-      const isSmallScreen = window.innerWidth <= 768;
-      
-      // Check user agent for mobile devices
-      const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      // Check if primarily touch-based (not just touch-capable)
-      const isPrimaryTouch = 'ontouchstart' in window && 
-                            navigator.maxTouchPoints > 0 && 
-                            !window.matchMedia('(pointer: fine)').matches;
-      
-      // Mobile if: small screen AND (mobile user agent OR primary touch)
-      const mobile = isSmallScreen && (isMobileUserAgent || isPrimaryTouch);
-      
-      // Temporary debug log - remove this later
-      console.log('Mobile detection:', {
-        isSmallScreen,
-        isMobileUserAgent,
-        isPrimaryTouch,
-        isMobile: mobile,
-        screenWidth: window.innerWidth
-      });
-      
-      setIsMobile(mobile);
+    const hasPrevious = currentIndex > 0;
+    const hasNext = currentIndex < taskCount - 1;
+
+    // Detect mobile device with more reliable method
+    useEffect(() => {
+        const checkMobile = () => {
+            // Check screen size (most reliable indicator)
+            const isSmallScreen = window.innerWidth <= 768;
+
+            // Check user agent for mobile devices
+            const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            // Check if primarily touch-based (not just touch-capable)
+            const isPrimaryTouch = 'ontouchstart' in window &&
+                navigator.maxTouchPoints > 0 &&
+                !window.matchMedia('(pointer: fine)').matches;
+
+            // Mobile if: small screen AND (mobile user agent OR primary touch)
+            const mobile = isSmallScreen && (isMobileUserAgent || isPrimaryTouch);
+
+            // Temporary debug log - remove this later
+            console.log('Mobile detection:', {
+                isSmallScreen,
+                isMobileUserAgent,
+                isPrimaryTouch,
+                isMobile: mobile,
+                screenWidth: window.innerWidth
+            });
+
+            setIsMobile(mobile);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // Handle pan gesture start
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handlePanStart = (_event: PointerEvent, _info: PanInfo) => {
+        // Only activate if this is actually a mobile device
+        if (!isMobile) return;
+
+        setIsSwipeInProgress(true);
+        // Don't show navigation immediately - wait for actual movement
     };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
-  // Handle pan gesture start
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handlePanStart = (_event: PointerEvent, _info: PanInfo) => {
-    // Only activate if this is actually a mobile device
-    if (!isMobile) return;
-    
-    setIsSwipeInProgress(true);
-    // Don't show navigation immediately - wait for actual movement
-  };
+    // Handle pan gesture during movement
+    const handlePan = (_event: PointerEvent, info: PanInfo) => {
+        if (!isMobile || !isSwipeInProgress) return;
 
-  // Handle pan gesture during movement
-  const handlePan = (_event: PointerEvent, info: PanInfo) => {
-    if (!isMobile || !isSwipeInProgress) return;
-    
-    const deltaY = info.delta.y;
-    const threshold = 20; // Small threshold to avoid showing on tiny movements
-    
-    // Show appropriate navigation based on swipe direction
-    if (Math.abs(deltaY) > threshold) {
-      if (deltaY < 0) { // Swiping up
-        setShowTopNav(true);
-        setShowBottomNav(false);
-      } else if (deltaY > 0) { // Swiping down
-        setShowBottomNav(true);
-        setShowTopNav(false);
-      }
-    }
-  };
+        const deltaY = info.delta.y;
+        const deltaX = info.delta.x;
+        const threshold = 20; // Small threshold to avoid showing on tiny movements
 
-  // Handle pan gesture end
-  const handlePanEnd = (_event: PointerEvent, info: PanInfo) => {
-    if (!isMobile) return;
-    
-    const deltaY = info.delta.y;
-    const velocityY = info.velocity.y;
-    const threshold = 50; // Minimum distance for swipe
-    const velocityThreshold = 500; // Minimum velocity for quick swipes
-
-    // Determine if swipe was significant enough
-    const isSignificantSwipe = Math.abs(deltaY) > threshold || Math.abs(velocityY) > velocityThreshold;
-
-    if (isSignificantSwipe) {
-      if (deltaY < 0 || velocityY < -velocityThreshold) {
-        // Swiped up - go to previous
-        if (hasPrevious) {
-          onNavigatePrevious();
-        } else {
-          // If no previous card, this could trigger add task
-          // But we'll just show the add button for now
+        // Prioritize horizontal swipes over vertical ones
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
+            // Horizontal swipe detected - hide vertical navigation
+            setShowTopNav(false);
+            setShowBottomNav(false);
+        } else if (Math.abs(deltaY) > threshold) {
+            // Show appropriate navigation based on vertical swipe direction
+            if (deltaY < 0) { // Swiping up
+                setShowTopNav(true);
+                setShowBottomNav(false);
+            } else if (deltaY > 0) { // Swiping down
+                setShowBottomNav(true);
+                setShowTopNav(false);
+            }
         }
-      } else if (deltaY > 0 || velocityY > velocityThreshold) {
-        // Swiped down - go to next
-        if (hasNext) {
-          onNavigateNext();
-        } else {
-          // If no next card, this could trigger add task
-          // But we'll just show the add button for now
+    };
+
+    // Handle pan gesture end
+    const handlePanEnd = (_event: PointerEvent, info: PanInfo) => {
+        if (!isMobile) return;
+
+        const deltaY = info.delta.y;
+        const deltaX = info.delta.x;
+        const velocityY = info.velocity.y;
+        const velocityX = info.velocity.x;
+        const threshold = 50; // Minimum distance for swipe
+        const velocityThreshold = 500; // Minimum velocity for quick swipes
+
+        // Check for horizontal swipe first (right swipe to add subtask)
+        const isSignificantHorizontalSwipe = Math.abs(deltaX) > threshold || Math.abs(velocityX) > velocityThreshold;
+        const isSignificantVerticalSwipe = Math.abs(deltaY) > threshold || Math.abs(velocityY) > velocityThreshold;
+
+        if (isSignificantHorizontalSwipe && Math.abs(deltaX) > Math.abs(deltaY)) {
+            // Horizontal swipe takes priority
+            if (deltaX > 0 || velocityX > velocityThreshold) {
+                // Swiped right - add subtask
+                if (onAddSubtask) {
+                    onAddSubtask();
+                }
+            }
+            // Note: We don't handle left swipes for now
+        } else if (isSignificantVerticalSwipe) {
+            // Vertical swipe
+            if (deltaY < 0 || velocityY < -velocityThreshold) {
+                // Swiped up - go to previous
+                if (hasPrevious) {
+                    onNavigatePrevious();
+                }
+            } else if (deltaY > 0 || velocityY > velocityThreshold) {
+                // Swiped down - go to next
+                if (hasNext) {
+                    onNavigateNext();
+                }
+            }
         }
-      }
-    }
 
-    // Hide navigation after a short delay
-    setTimeout(() => {
-      setIsSwipeInProgress(false);
-      setShowTopNav(false);
-      setShowBottomNav(false);
-    }, 100);
-  };
+        // Hide navigation after a short delay
+        setTimeout(() => {
+            setIsSwipeInProgress(false);
+            setShowTopNav(false);
+            setShowBottomNav(false);
+        }, 100);
+    };
+    return (
+        <NavigationContainer>
+            <TaskContentWrapper
+                // Add pan gesture handling for mobile
+                {...(isMobile && {
+                    onPanStart: handlePanStart,
+                    onPan: handlePan,
+                    onPanEnd: handlePanEnd
+                })}
+            >
+                {/* Top navigation area */}
+                <NavigationArea
+                    position="top"
+                    isMobile={isMobile}
+                    // Only add mouse events for non-mobile devices
+                    {...(!isMobile && {
+                        onMouseEnter: () => setShowTopNav(true),
+                        onMouseLeave: () => setShowTopNav(false)
+                    })}
+                >
+                    <AnimatePresence>
+                        {((!isMobile && showTopNav) || (isMobile && isSwipeInProgress && showTopNav)) && (
+                            <>
+                                {hasPrevious ? (
+                                    <NavigationButton
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={onNavigatePrevious}
+                                        title="Previous task"
+                                    >
+                                        ↑
+                                    </NavigationButton>
+                                ) : (
+                                    <AddTaskButton
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={onAddTask}
+                                        title="Add task above"
+                                    >
+                                        +
+                                    </AddTaskButton>
+                                )}
+                            </>
+                        )}
+                    </AnimatePresence>
+                </NavigationArea>
 
-  return (
-    <NavigationContainer>
-      <TaskContentWrapper
-        // Add pan gesture handling for mobile
-        {...(isMobile && {
-          onPanStart: handlePanStart,
-          onPan: handlePan,
-          onPanEnd: handlePanEnd
-        })}
-      >
-        {/* Top navigation area */}
-        <NavigationArea
-          position="top"
-          isMobile={isMobile}
-          // Only add mouse events for non-mobile devices
-          {...(!isMobile && {
-            onMouseEnter: () => setShowTopNav(true),
-            onMouseLeave: () => setShowTopNav(false)
-          })}
-        >
-          <AnimatePresence>
-            {((!isMobile && showTopNav) || (isMobile && isSwipeInProgress && showTopNav)) && (
-              <>
-                {hasPrevious ? (
-                  <NavigationButton
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={onNavigatePrevious}
-                    title="Previous task"
-                  >
-                    ↑
-                  </NavigationButton>
-                ) : (
-                  <AddTaskButton
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={onAddTask}
-                    title="Add task above"
-                  >
-                    +
-                  </AddTaskButton>
-                )}
-              </>
-            )}
-          </AnimatePresence>
-        </NavigationArea>
+                {/* Main task card */}
+                <TaskCard
+                    task={task}
+                    taskCount={taskCount}
+                    onComplete={onComplete}
+                    onDismiss={onDismiss}
+                    onSnooze={onSnooze}
+                    isShuffling={isShuffling}
+                    simplifyMode={simplifyMode}
+                    pomodoroActive={pomodoroActive}
+                    pomodoroEndTime={pomodoroEndTime}
+                    onPomodoroComplete={onPomodoroComplete}
+                    onOpenSubtasks={onOpenSubtasks}
+                    onAddSubtask={onAddSubtask}
+                />
 
-        {/* Main task card */}
-        <TaskCard
-          task={task}
-          taskCount={taskCount}
-          onComplete={onComplete}
-          onDismiss={onDismiss}
-          onSnooze={onSnooze}
-          isShuffling={isShuffling}
-          simplifyMode={simplifyMode}
-          pomodoroActive={pomodoroActive}
-          pomodoroEndTime={pomodoroEndTime}
-          onPomodoroComplete={onPomodoroComplete}
-          onOpenSubtasks={onOpenSubtasks}
-          onAddSubtask={onAddSubtask}
-        />
-
-        {/* Bottom navigation area */}
-        <NavigationArea
-          position="bottom"
-          isMobile={isMobile}
-          // Only add mouse events for non-mobile devices
-          {...(!isMobile && {
-            onMouseEnter: () => setShowBottomNav(true),
-            onMouseLeave: () => setShowBottomNav(false)
-          })}
-        >
-          <AnimatePresence>
-            {((!isMobile && showBottomNav) || (isMobile && isSwipeInProgress && showBottomNav)) && (
-              <>
-                {hasNext ? (
-                  <NavigationButton
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={onNavigateNext}
-                    title="Next task"
-                  >
-                    ↓
-                  </NavigationButton>
-                ) : (
-                  <AddTaskButton
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={onAddTask}
-                    title="Add task below"
-                  >
-                    +
-                  </AddTaskButton>
-                )}
-              </>
-            )}
-          </AnimatePresence>
-        </NavigationArea>
-      </TaskContentWrapper>
-    </NavigationContainer>
-  );
+                {/* Bottom navigation area */}
+                <NavigationArea
+                    position="bottom"
+                    isMobile={isMobile}
+                    // Only add mouse events for non-mobile devices
+                    {...(!isMobile && {
+                        onMouseEnter: () => setShowBottomNav(true),
+                        onMouseLeave: () => setShowBottomNav(false)
+                    })}
+                >
+                    <AnimatePresence>
+                        {((!isMobile && showBottomNav) || (isMobile && isSwipeInProgress && showBottomNav)) && (
+                            <>
+                                {hasNext ? (
+                                    <NavigationButton
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={onNavigateNext}
+                                        title="Next task"
+                                    >
+                                        ↓
+                                    </NavigationButton>
+                                ) : (
+                                    <AddTaskButton
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={onAddTask}
+                                        title="Add task below"
+                                    >
+                                        +
+                                    </AddTaskButton>
+                                )}
+                            </>
+                        )}
+                    </AnimatePresence>
+                </NavigationArea>
+            </TaskContentWrapper>
+        </NavigationContainer>
+    );
 };
 
 export default TaskNavigationView;

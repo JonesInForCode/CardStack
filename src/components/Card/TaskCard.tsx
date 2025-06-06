@@ -1,4 +1,5 @@
 // src/components/Card/TaskCard.tsx - Properly using styled-components
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task, type Priority, type Category } from '../../types/Task';
@@ -299,6 +300,41 @@ const SubtaskBadge = styled(motion.div)`
   cursor: pointer;
 `;
 
+const SwipeHint = styled(motion.div)`
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: ${({ theme }) => theme.colors.primaryLight};
+  color: white;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.large} 0 0 ${({ theme }) => theme.borderRadius.large};
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+  pointer-events: none;
+  white-space: nowrap;
+`;
+
+const SwipeIndicator = styled(motion.div)`
+  position: absolute;
+  left: 50%;
+  bottom: -30px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+`;
+
+const SwipeDot = styled(motion.div) <{ active?: boolean }>`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: ${({ theme, active }) =>
+    active ? theme.colors.primary : theme.colors.textSecondary};
+  opacity: ${({ active }) => active ? 1 : 0.3};
+`;
+
 const TaskCard = ({
   task,
   taskCount,
@@ -320,6 +356,38 @@ const TaskCard = ({
   // Context menu state
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobile(hasCoarsePointer || isSmallScreen);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Show swipe hint briefly on mobile for first-time users
+  useEffect(() => {
+    if (isMobile && onAddSubtask) {
+      const hasSeenHint = localStorage.getItem('hasSeenSwipeHint');
+      if (!hasSeenHint) {
+        setShowSwipeHint(true);
+        const timer = setTimeout(() => {
+          setShowSwipeHint(false);
+          localStorage.setItem('hasSeenSwipeHint', 'true');
+        }, 3000);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isMobile, onAddSubtask]);
 
   const handleSubtaskBadgeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -394,7 +462,7 @@ const TaskCard = ({
       exit="exit"
       variants={cardVariants}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      style={{ touchAction: 'pan-y'}}
+      style={{ touchAction: 'pan-y' }}
     >
       {task.hasSubtasks && task.subtasks && task.subtasks.length > 0 ? (
         <>
@@ -416,17 +484,37 @@ const TaskCard = ({
             onViewSubtasks={onOpenSubtasks!}
           />
         </>
-      ) : onAddSubtask && (
+      ) : onAddSubtask && !isSnoozed && (
         <FloatingSubtaskButton
           whileTap={{ scale: 0.9 }}
           whileHover={{ scale: 1.1 }}
           onClick={onAddSubtask}
           title="Add subtask"
           aria-label="Add subtask to this task"
+          style={{
+            display: isMobile ? 'none' : 'flex'
+          }}
         >
           +
         </FloatingSubtaskButton>
       )}
+      {/* Mobile: Show swipe hint */}
+      {onAddSubtask && showSwipeHint && (
+        <SwipeHint
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+        >
+          ← Swipe left for subtask
+        </SwipeHint>
+      )}
+
+      {/* Swipe indicators at bottom */}
+      <SwipeIndicator>
+        <SwipeDot />
+        <SwipeDot active />
+        <SwipeDot />
+      </SwipeIndicator>
       {pomodoroActive && onPomodoroComplete && (
         <PomodoroTimer
           isRunning={pomodoroActive && !isShuffling && !isSnoozed}

@@ -145,22 +145,21 @@ const TaskNavigationView = ({
 
         const deltaY = info.delta.y;
         const deltaX = info.delta.x;
-        const threshold = 10; // Much lower threshold
+        const threshold = 10;
 
-        // Debug logging
-        console.log('Pan movement:', { deltaX, deltaY });
-
-        // Prioritize horizontal swipes over vertical ones
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
-            // Horizontal swipe detected - hide vertical navigation
+        // Add visual feedback for horizontal swipe
+        if (Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+            // When swiping left, slightly rotate the card to show it's interactive
+            if (deltaX < -20) {
+                // You could add a visual state here if needed
+            }
             setShowTopNav(false);
             setShowBottomNav(false);
         } else if (Math.abs(deltaY) > threshold) {
-            // Show appropriate navigation based on vertical swipe direction
-            if (deltaY < 0) { // Swiping up
+            if (deltaY < 0) {
                 setShowTopNav(true);
                 setShowBottomNav(false);
-            } else if (deltaY > 0) { // Swiping down
+            } else if (deltaY > 0) {
                 setShowBottomNav(true);
                 setShowTopNav(false);
             }
@@ -192,9 +191,9 @@ const TaskNavigationView = ({
 
         if (isSignificantHorizontalSwipe && Math.abs(deltaX) > Math.abs(deltaY)) {
             // Horizontal swipe takes priority
-            if (deltaX < 0 || velocityX < -velocityThreshold) {
+            if (deltaX < -distanceThreshold || velocityX < -velocityThreshold) {
                 // Swiped left - add subtask
-                console.log('Right swipe detected - adding subtask');
+                console.log('Left swipe detected - adding subtask');
                 if (onAddSubtask) {
                     onAddSubtask();
                 }
@@ -226,13 +225,14 @@ const TaskNavigationView = ({
     return (
         <NavigationContainer>
             <TaskContentWrapper
-                drag="y"
-                dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={0.2}
+                drag
+                dragConstraints={{ top: 0, bottom: 0, left: -80, right: 0 }}
+                dragElastic={{ left: 0.3, right: 0, top: 0.2, bottom: 0.2 }}
+                dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
                 onPanStart={handlePanStart}
                 onPan={handlePan}
                 onPanEnd={handlePanEnd}
-                style={{ touchAction: 'pan-y' }}
+                style={{ touchAction: 'none' }}
             >
                 {/* Top navigation area */}
                 <NavigationArea

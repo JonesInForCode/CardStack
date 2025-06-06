@@ -25,7 +25,7 @@ import { ANIMATION_DURATION } from './constants';
 import { type Category, type PartialTask, getCategoryEmoji } from './types/Task';
 
 // Get the app version from package.json
-const APP_VERSION = '1.5.4'; // This should match your package.json version
+const APP_VERSION = '1.5.5'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;

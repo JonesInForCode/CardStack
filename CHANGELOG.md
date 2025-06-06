@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0] - 2025-06-06
+
+### Added
+- **Spatial navigation feature**
+  - Spatial navigation was added to subcards in 1.4.0 and is now added to the main card view
+
+
 ## [1.4.0] - 2025-06-03
 
 ### Added

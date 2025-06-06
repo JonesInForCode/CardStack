@@ -28,7 +28,7 @@ const GlobalStyle = createGlobalStyle`
     overscroll-behavior: none;
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.textPrimary};
-    touch-action: manipulation; /* Improves touch behavior */
+    touch-action: pan-y; /* Allow vertical panning for swipe gestures */
   }
 
   #root {

@@ -175,8 +175,8 @@ const TaskNavigationView = ({
         const velocityX = info.velocity.x;
 
         // Much more permissive thresholds
-        const distanceThreshold = 30; // Lower distance requirement
-        const velocityThreshold = 200; // Much lower velocity requirement
+        const distanceThreshold = 50; // Lower distance requirement
+        const velocityThreshold = 100; // Much lower velocity requirement
 
         // Debug logging
         console.log('Pan end:', {
@@ -226,10 +226,13 @@ const TaskNavigationView = ({
     return (
         <NavigationContainer>
             <TaskContentWrapper
-                // Always enable pan gestures on touch-capable devices
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={0.2}
                 onPanStart={handlePanStart}
                 onPan={handlePan}
                 onPanEnd={handlePanEnd}
+                style={{ touchAction: 'pan-y' }}
             >
                 {/* Top navigation area */}
                 <NavigationArea

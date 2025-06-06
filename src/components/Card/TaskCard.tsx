@@ -394,6 +394,7 @@ const TaskCard = ({
       exit="exit"
       variants={cardVariants}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      style={{ touchAction: 'pan-y'}}
     >
       {task.hasSubtasks && task.subtasks && task.subtasks.length > 0 ? (
         <>

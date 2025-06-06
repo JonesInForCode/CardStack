@@ -105,43 +105,50 @@ const TaskNavigationView = ({
     const hasPrevious = currentIndex > 0;
     const hasNext = currentIndex < taskCount - 1;
 
-    // Detect touch capability - simpler and more reliable
+    // Detect primary input method - hover for desktop, gestures for mobile
     useEffect(() => {
-        const checkTouchCapable = () => {
-            // If the device has touch capability, enable gestures
-            const hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const checkPrimaryInput = () => {
+            // Check if the primary pointing device can hover (fine pointer like mouse)
+            const hasHoverCapability = window.matchMedia('(hover: hover)').matches;
+            // Check if the primary pointing device is coarse (like finger)
+            const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
 
-            console.log('Touch detection:', {
-                hasTouchSupport,
-                maxTouchPoints: navigator.maxTouchPoints,
+            // If device can hover reliably, it's probably desktop/laptop with mouse
+            // If it has coarse pointer, it's probably mobile/tablet
+            const isMobileDevice = hasCoarsePointer || !hasHoverCapability;
+
+            console.log('Input detection:', {
+                hasHoverCapability,
+                hasCoarsePointer,
+                isMobileDevice,
                 screenWidth: window.innerWidth
             });
 
-            setIsMobile(hasTouchSupport);
+            setIsMobile(isMobileDevice);
         };
 
-        checkTouchCapable();
-        window.addEventListener('resize', checkTouchCapable);
-        return () => window.removeEventListener('resize', checkTouchCapable);
+        checkPrimaryInput();
+        window.addEventListener('resize', checkPrimaryInput);
+        return () => window.removeEventListener('resize', checkPrimaryInput);
     }, []);
 
     // Handle pan gesture start
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handlePanStart = (_event: PointerEvent, _info: PanInfo) => {
-        // Only activate if this is actually a mobile device
-        if (!isMobile) return;
-
         setIsSwipeInProgress(true);
-        // Don't show navigation immediately - wait for actual movement
+        console.log('Pan start detected');
     };
 
     // Handle pan gesture during movement
     const handlePan = (_event: PointerEvent, info: PanInfo) => {
-        if (!isMobile || !isSwipeInProgress) return;
+        if (!isSwipeInProgress) return;
 
         const deltaY = info.delta.y;
         const deltaX = info.delta.x;
-        const threshold = 20; // Small threshold to avoid showing on tiny movements
+        const threshold = 10; // Much lower threshold
+
+        // Debug logging
+        console.log('Pan movement:', { deltaX, deltaY });
 
         // Prioritize horizontal swipes over vertical ones
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
@@ -162,37 +169,47 @@ const TaskNavigationView = ({
 
     // Handle pan gesture end
     const handlePanEnd = (_event: PointerEvent, info: PanInfo) => {
-        if (!isMobile) return;
-
         const deltaY = info.delta.y;
         const deltaX = info.delta.x;
         const velocityY = info.velocity.y;
         const velocityX = info.velocity.x;
-        const threshold = 50; // Minimum distance for swipe
-        const velocityThreshold = 500; // Minimum velocity for quick swipes
+
+        // Much more permissive thresholds
+        const distanceThreshold = 30; // Lower distance requirement
+        const velocityThreshold = 200; // Much lower velocity requirement
+
+        // Debug logging
+        console.log('Pan end:', {
+            deltaX, deltaY,
+            velocityX, velocityY,
+            distanceThreshold,
+            velocityThreshold
+        });
 
         // Check for horizontal swipe first (right swipe to add subtask)
-        const isSignificantHorizontalSwipe = Math.abs(deltaX) > threshold || Math.abs(velocityX) > velocityThreshold;
-        const isSignificantVerticalSwipe = Math.abs(deltaY) > threshold || Math.abs(velocityY) > velocityThreshold;
+        const isSignificantHorizontalSwipe = Math.abs(deltaX) > distanceThreshold || Math.abs(velocityX) > velocityThreshold;
+        const isSignificantVerticalSwipe = Math.abs(deltaY) > distanceThreshold || Math.abs(velocityY) > velocityThreshold;
 
         if (isSignificantHorizontalSwipe && Math.abs(deltaX) > Math.abs(deltaY)) {
             // Horizontal swipe takes priority
             if (deltaX > 0 || velocityX > velocityThreshold) {
                 // Swiped right - add subtask
+                console.log('Right swipe detected - adding subtask');
                 if (onAddSubtask) {
                     onAddSubtask();
                 }
             }
-            // Note: We don't handle left swipes for now
         } else if (isSignificantVerticalSwipe) {
             // Vertical swipe
             if (deltaY < 0 || velocityY < -velocityThreshold) {
                 // Swiped up - go to previous
+                console.log('Up swipe detected - previous task');
                 if (hasPrevious) {
                     onNavigatePrevious();
                 }
             } else if (deltaY > 0 || velocityY > velocityThreshold) {
                 // Swiped down - go to next
+                console.log('Down swipe detected - next task');
                 if (hasNext) {
                     onNavigateNext();
                 }
@@ -218,14 +235,12 @@ const TaskNavigationView = ({
                 <NavigationArea
                     position="top"
                     isMobile={isMobile}
-                    // Only add mouse events for non-mobile devices
-                    {...(!isMobile && {
-                        onMouseEnter: () => setShowTopNav(true),
-                        onMouseLeave: () => setShowTopNav(false)
-                    })}
+                    // Always add mouse events for hover capability
+                    onMouseEnter={() => setShowTopNav(true)}
+                    onMouseLeave={() => setShowTopNav(false)}
                 >
                     <AnimatePresence>
-                        {((!isMobile && showTopNav) || (isMobile && isSwipeInProgress && showTopNav)) && (
+                        {(showTopNav || (isMobile && isSwipeInProgress && showTopNav)) && (
                             <>
                                 {hasPrevious ? (
                                     <NavigationButton
@@ -275,14 +290,12 @@ const TaskNavigationView = ({
                 <NavigationArea
                     position="bottom"
                     isMobile={isMobile}
-                    // Only add mouse events for non-mobile devices
-                    {...(!isMobile && {
-                        onMouseEnter: () => setShowBottomNav(true),
-                        onMouseLeave: () => setShowBottomNav(false)
-                    })}
+                    // Always add mouse events for hover capability
+                    onMouseEnter={() => setShowBottomNav(true)}
+                    onMouseLeave={() => setShowBottomNav(false)}
                 >
                     <AnimatePresence>
-                        {((!isMobile && showBottomNav) || (isMobile && isSwipeInProgress && showBottomNav)) && (
+                        {(showBottomNav || (isMobile && isSwipeInProgress && showBottomNav)) && (
                             <>
                                 {hasNext ? (
                                     <NavigationButton

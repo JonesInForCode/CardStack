@@ -1,6 +1,6 @@
 // src/components/TaskNavigationView.tsx
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task } from '../types/Task';
 import TaskCard from './Card/TaskCard';
@@ -34,12 +34,12 @@ const NavigationContainer = styled.div`
   min-height: 400px;
 `;
 
-const TaskContentWrapper = styled.div`
+const TaskContentWrapper = styled(motion.div)`
   position: relative;
   width: 100%;
 `;
 
-const NavigationArea = styled(motion.div)<{ position: 'top' | 'bottom' }>`
+const NavigationArea = styled(motion.div)<{ position: 'top' | 'bottom'; isMobile: boolean }>`
   position: absolute;
   left: 0;
   right: 0;
@@ -48,7 +48,7 @@ const NavigationArea = styled(motion.div)<{ position: 'top' | 'bottom' }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: ${({ isMobile }) => isMobile ? 'default' : 'pointer'};
   z-index: 5;
 `;
 
@@ -99,21 +99,137 @@ const TaskNavigationView = ({
 }: TaskNavigationViewProps) => {
   const [showTopNav, setShowTopNav] = useState(false);
   const [showBottomNav, setShowBottomNav] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
   
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < taskCount - 1;
 
+  // Detect mobile device with more reliable method
+  useEffect(() => {
+    const checkMobile = () => {
+      // Check screen size (most reliable indicator)
+      const isSmallScreen = window.innerWidth <= 768;
+      
+      // Check user agent for mobile devices
+      const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      // Check if primarily touch-based (not just touch-capable)
+      const isPrimaryTouch = 'ontouchstart' in window && 
+                            navigator.maxTouchPoints > 0 && 
+                            !window.matchMedia('(pointer: fine)').matches;
+      
+      // Mobile if: small screen AND (mobile user agent OR primary touch)
+      const mobile = isSmallScreen && (isMobileUserAgent || isPrimaryTouch);
+      
+      // Temporary debug log - remove this later
+      console.log('Mobile detection:', {
+        isSmallScreen,
+        isMobileUserAgent,
+        isPrimaryTouch,
+        isMobile: mobile,
+        screenWidth: window.innerWidth
+      });
+      
+      setIsMobile(mobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Handle pan gesture start
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handlePanStart = (_event: PointerEvent, _info: PanInfo) => {
+    // Only activate if this is actually a mobile device
+    if (!isMobile) return;
+    
+    setIsSwipeInProgress(true);
+    // Don't show navigation immediately - wait for actual movement
+  };
+
+  // Handle pan gesture during movement
+  const handlePan = (_event: PointerEvent, info: PanInfo) => {
+    if (!isMobile || !isSwipeInProgress) return;
+    
+    const deltaY = info.delta.y;
+    const threshold = 20; // Small threshold to avoid showing on tiny movements
+    
+    // Show appropriate navigation based on swipe direction
+    if (Math.abs(deltaY) > threshold) {
+      if (deltaY < 0) { // Swiping up
+        setShowTopNav(true);
+        setShowBottomNav(false);
+      } else if (deltaY > 0) { // Swiping down
+        setShowBottomNav(true);
+        setShowTopNav(false);
+      }
+    }
+  };
+
+  // Handle pan gesture end
+  const handlePanEnd = (_event: PointerEvent, info: PanInfo) => {
+    if (!isMobile) return;
+    
+    const deltaY = info.delta.y;
+    const velocityY = info.velocity.y;
+    const threshold = 50; // Minimum distance for swipe
+    const velocityThreshold = 500; // Minimum velocity for quick swipes
+
+    // Determine if swipe was significant enough
+    const isSignificantSwipe = Math.abs(deltaY) > threshold || Math.abs(velocityY) > velocityThreshold;
+
+    if (isSignificantSwipe) {
+      if (deltaY < 0 || velocityY < -velocityThreshold) {
+        // Swiped up - go to previous
+        if (hasPrevious) {
+          onNavigatePrevious();
+        } else {
+          // If no previous card, this could trigger add task
+          // But we'll just show the add button for now
+        }
+      } else if (deltaY > 0 || velocityY > velocityThreshold) {
+        // Swiped down - go to next
+        if (hasNext) {
+          onNavigateNext();
+        } else {
+          // If no next card, this could trigger add task
+          // But we'll just show the add button for now
+        }
+      }
+    }
+
+    // Hide navigation after a short delay
+    setTimeout(() => {
+      setIsSwipeInProgress(false);
+      setShowTopNav(false);
+      setShowBottomNav(false);
+    }, 100);
+  };
+
   return (
     <NavigationContainer>
-      <TaskContentWrapper>
+      <TaskContentWrapper
+        // Add pan gesture handling for mobile
+        {...(isMobile && {
+          onPanStart: handlePanStart,
+          onPan: handlePan,
+          onPanEnd: handlePanEnd
+        })}
+      >
         {/* Top navigation area */}
         <NavigationArea
           position="top"
-          onMouseEnter={() => setShowTopNav(true)}
-          onMouseLeave={() => setShowTopNav(false)}
+          isMobile={isMobile}
+          // Only add mouse events for non-mobile devices
+          {...(!isMobile && {
+            onMouseEnter: () => setShowTopNav(true),
+            onMouseLeave: () => setShowTopNav(false)
+          })}
         >
           <AnimatePresence>
-            {showTopNav && (
+            {((!isMobile && showTopNav) || (isMobile && isSwipeInProgress && showTopNav)) && (
               <>
                 {hasPrevious ? (
                   <NavigationButton
@@ -162,11 +278,15 @@ const TaskNavigationView = ({
         {/* Bottom navigation area */}
         <NavigationArea
           position="bottom"
-          onMouseEnter={() => setShowBottomNav(true)}
-          onMouseLeave={() => setShowBottomNav(false)}
+          isMobile={isMobile}
+          // Only add mouse events for non-mobile devices
+          {...(!isMobile && {
+            onMouseEnter: () => setShowBottomNav(true),
+            onMouseLeave: () => setShowBottomNav(false)
+          })}
         >
           <AnimatePresence>
-            {showBottomNav && (
+            {((!isMobile && showBottomNav) || (isMobile && isSwipeInProgress && showBottomNav)) && (
               <>
                 {hasNext ? (
                   <NavigationButton

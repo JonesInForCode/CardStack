@@ -250,18 +250,19 @@ const TaskCount = styled.div`
 
 const FloatingSubtaskButton = styled(motion.button)`
   position: absolute;
-  top: -8px;
-  right: -8px;
+  right: -50px;
+  top: 50%;
+  transform: translateY(-50%);
   background-color: ${({ theme }) => theme.colors.primaryLight};
   color: white;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: ${({ theme }) => theme.shadows.medium};
-  font-size: 1rem;
+  font-size: 1.2rem;
   z-index: 2;
   border: 2px solid ${({ theme }) => theme.colors.cardBackground};
 `;

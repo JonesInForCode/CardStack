@@ -216,15 +216,15 @@ const TaskNavigationView = ({
         if (absX > absY) {
             // Horizontal swipe
             if (info.offset.x < 0 && isValidSwipe(absX, absVelX)) {
-                // Left swipe - complete task
-                onComplete();
-            } else if (info.offset.x > 0 && isValidSwipe(absX, absVelX)) {
-                // Right swipe - open subtasks or add subtask
+                // Left swipe - open subtasks or add subtask
                 if (hasSubtasks && onOpenSubtasks) {
                     onOpenSubtasks();
                 } else if (onAddSubtask) {
                     onAddSubtask();
                 }
+            } else if (info.offset.x > 0 && isValidSwipe(absX, absVelX)) {
+                // Right swipe - Complete task
+                onComplete();
             }
         } else {
             // Vertical swipe
@@ -256,11 +256,11 @@ const TaskNavigationView = ({
     // Get swipe indicator text
     const getSwipeIndicatorText = () => {
         switch (swipeDirection) {
-            case 'left':
+            case 'right':  // SWAPPED
                 return { text: 'Complete', icon: '✓' };
-            case 'right':
+            case 'left':   // SWAPPED
                 if (hasSubtasks) {
-                    return { text: 'View Subtasks', icon: '→' };
+                    return { text: 'View Subtasks', icon: '←' };
                 }
                 return { text: 'Add Subtask', icon: '+' };
             case 'up':

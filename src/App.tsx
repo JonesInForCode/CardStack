@@ -25,7 +25,7 @@ import { ANIMATION_DURATION } from './constants';
 import { type Category, type PartialTask, getCategoryEmoji } from './types/Task';
 
 // Get the app version from package.json
-const APP_VERSION = '1.5.6'; // This should match your package.json version
+const APP_VERSION = '1.5.7'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -118,8 +118,6 @@ const App = () => {
     completeSubtask,
     cancelSubtask,
     upgradeSubtaskToTask,
-    navigateToPrevious,
-    navigateToNext,
   } = useTasks();
 
   // UI state
@@ -349,8 +347,16 @@ const App = () => {
                       onComplete={completeTask}
                       onDismiss={dismissTask}
                       onSnooze={snoozeTask}
-                      onNavigatePrevious={navigateToPrevious}
-                      onNavigateNext={navigateToNext}
+                      onNavigatePrevious={() => {
+                        if (currentTaskIndex > 0) {
+                          setCurrentTaskIndex(currentTaskIndex - 1);
+                        }
+                      }}
+                      onNavigateNext={() => {
+                        if (currentTaskIndex < tasks.length - 1) {
+                          setCurrentTaskIndex(currentTaskIndex + 1);
+                        }
+                      }}
                       onAddTask={() => setShowAddTask(true)}
                       isShuffling={isShuffling}
                       simplifyMode={simplifyMode}

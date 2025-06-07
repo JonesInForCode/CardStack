@@ -312,11 +312,11 @@ const SubtaskView = ({
     if (absX > absY) {
       // Horizontal swipe
       if (info.offset.x < 0 && isValidSwipe(absX, absVelX)) {
-        // Left swipe - complete subtask
-        handleSubtaskComplete();
-      } else if (info.offset.x > 0 && isValidSwipe(absX, absVelX)) {
-        // Right swipe - go back to parent
+        // Left swipe - go back to parent (SWAPPED)
         onClose();
+      } else if (info.offset.x > 0 && isValidSwipe(absX, absVelX)) {
+        // Right swipe - complete subtask (SWAPPED)
+        handleSubtaskComplete();
       }
     } else {
       // Vertical swipe
@@ -346,9 +346,9 @@ const SubtaskView = ({
   // Get swipe indicator text
   const getSwipeIndicatorText = () => {
     switch (swipeDirection) {
-      case 'left':
+      case 'right':  // SWAPPED
         return { text: 'Complete', icon: '✓' };
-      case 'right':
+      case 'left':   // SWAPPED
         return { text: 'Back to Task', icon: '←' };
       case 'up':
         if (hasPrevious) {

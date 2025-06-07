@@ -1,6 +1,6 @@
 // src/components/SubtaskView.tsx
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task } from '../types/Task';
 import SubtaskCard from './Card/SubtaskCard';
@@ -58,13 +58,13 @@ const SubtaskContainer = styled.div`
   min-height: 400px;
 `;
 
-const SubtaskContentWrapper = styled.div`
+const SubtaskContentWrapper = styled(motion.div)`
   position: relative;
   width: 100%;
   max-width: 500px;
 `;
 
-const NavigationArea = styled(motion.div)<{ position: 'top' | 'bottom' }>`
+const NavigationArea = styled(motion.div) <{ position: 'top' | 'bottom' }>`
   position: absolute;
   left: 0;
   right: 0;
@@ -145,6 +145,53 @@ const CompleteMainButton = styled(motion.button)`
   width: 100%;
 `;
 
+// Swipe indicator
+const SwipeIndicator = styled(motion.div) <{ direction: 'left' | 'right' | 'up' | 'down' }>`
+  position: absolute;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  
+  ${({ direction }) => {
+    switch (direction) {
+      case 'left':
+        return `
+          right: -20px;
+          top: 50%;
+          transform: translateY(-50%);
+        `;
+      case 'right':
+        return `
+          left: -20px;
+          top: 50%;
+          transform: translateY(-50%);
+        `;
+      case 'up':
+        return `
+          bottom: -20px;
+          left: 50%;
+          transform: translateX(-50%);
+        `;
+      case 'down':
+        return `
+          top: -20px;
+          left: 50%;
+          transform: translateX(-50%);
+        `;
+    }
+  }}
+`;
+
 const SubtaskView = ({
   parentTask,
   subtasks,
@@ -157,13 +204,31 @@ const SubtaskView = ({
   const [currentSubtaskIndex, setCurrentSubtaskIndex] = useState(0);
   const [showTopNav, setShowTopNav] = useState(false);
   const [showBottomNav, setShowBottomNav] = useState(false);
-  
+  const [isMobile, setIsMobile] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | 'up' | 'down' | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [dragY, setDragY] = useState(0);
+
   // Get active subtasks (not completed or cancelled)
   const activeSubtasks = subtasks.filter(st => !st.isCompleted);
   const currentSubtask = activeSubtasks[currentSubtaskIndex];
-  
+
   const hasPrevious = currentSubtaskIndex > 0;
   const hasNext = currentSubtaskIndex < activeSubtasks.length - 1;
+
+  // Detect if mobile
+  useEffect(() => {
+    const checkPrimaryInput = () => {
+      const hasHoverCapability = window.matchMedia('(hover: hover)').matches;
+      const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      const isMobileDevice = hasCoarsePointer || !hasHoverCapability;
+      setIsMobile(isMobileDevice);
+    };
+
+    checkPrimaryInput();
+    window.addEventListener('resize', checkPrimaryInput);
+    return () => window.removeEventListener('resize', checkPrimaryInput);
+  }, []);
 
   const handleSubtaskComplete = () => {
     if (currentSubtask) {
@@ -203,6 +268,105 @@ const SubtaskView = ({
     }
   };
 
+  // Handle drag during movement
+  const handleDrag = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    setDragX(info.offset.x);
+    setDragY(info.offset.y);
+
+    const threshold = 30;
+
+    if (Math.abs(info.offset.x) > Math.abs(info.offset.y)) {
+      // Horizontal swipe
+      if (info.offset.x < -threshold) {
+        setSwipeDirection('left');
+      } else if (info.offset.x > threshold) {
+        setSwipeDirection('right');
+      } else {
+        setSwipeDirection(null);
+      }
+    } else {
+      // Vertical swipe
+      if (info.offset.y < -threshold) {
+        setSwipeDirection('up');
+      } else if (info.offset.y > threshold) {
+        setSwipeDirection('down');
+      } else {
+        setSwipeDirection(null);
+      }
+    }
+  };
+
+  // Handle drag end
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const distanceThreshold = 50;
+    const velocityThreshold = 100;
+
+    const absX = Math.abs(info.offset.x);
+    const absY = Math.abs(info.offset.y);
+    const absVelX = Math.abs(info.velocity.x);
+    const absVelY = Math.abs(info.velocity.y);
+
+    const isValidSwipe = (distance: number, velocity: number) =>
+      distance > distanceThreshold || velocity > velocityThreshold;
+
+    if (absX > absY) {
+      // Horizontal swipe
+      if (info.offset.x < 0 && isValidSwipe(absX, absVelX)) {
+        // Left swipe - complete subtask
+        handleSubtaskComplete();
+      } else if (info.offset.x > 0 && isValidSwipe(absX, absVelX)) {
+        // Right swipe - go back to parent
+        onClose();
+      }
+    } else {
+      // Vertical swipe
+      if (info.offset.y < 0 && isValidSwipe(absY, absVelY)) {
+        // Up swipe
+        if (hasPrevious) {
+          navigateToPrevious();
+        } else {
+          onAddSubtask(); // Add subtask at top
+        }
+      } else if (info.offset.y > 0 && isValidSwipe(absY, absVelY)) {
+        // Down swipe
+        if (hasNext) {
+          navigateToNext();
+        } else {
+          onAddSubtask(); // Add subtask at bottom
+        }
+      }
+    }
+
+    // Reset state
+    setSwipeDirection(null);
+    setDragX(0);
+    setDragY(0);
+  };
+
+  // Get swipe indicator text
+  const getSwipeIndicatorText = () => {
+    switch (swipeDirection) {
+      case 'left':
+        return { text: 'Complete', icon: '✓' };
+      case 'right':
+        return { text: 'Back to Task', icon: '←' };
+      case 'up':
+        if (hasPrevious) {
+          return { text: 'Previous', icon: '↑' };
+        }
+        return { text: 'Add Subtask', icon: '+' };
+      case 'down':
+        if (hasNext) {
+          return { text: 'Next', icon: '↓' };
+        }
+        return { text: 'Add Subtask', icon: '+' };
+      default:
+        return null;
+    }
+  };
+
+  const indicatorInfo = getSwipeIndicatorText();
+
   return (
     <ViewContainer>
       <ParentCardContainer
@@ -221,46 +385,118 @@ const SubtaskView = ({
       </ParentCardContainer>
 
       <SubtaskContainer>
-        <SubtaskContentWrapper>
-          {/* Top navigation or add button */}
-          <NavigationArea
-            position="top"
-            onMouseEnter={() => setShowTopNav(true)}
-            onMouseLeave={() => setShowTopNav(false)}
-          >
-            <AnimatePresence>
-              {showTopNav && (
-                <>
-                  {hasPrevious ? (
-                    <NavigationButton
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={navigateToPrevious}
-                    >
-                      ↑
-                    </NavigationButton>
-                  ) : (
-                    <AddSubtaskButton
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={onAddSubtask}
-                      title="Add subtask above"
-                    >
-                      +
-                    </AddSubtaskButton>
+        <SubtaskContentWrapper
+          drag={isMobile}
+          dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
+          dragElastic={0.2}
+          dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          animate={{ x: 0, y: 0 }}
+          style={{ touchAction: isMobile ? 'none' : 'auto' }}
+        >
+          {/* Swipe indicators */}
+          <AnimatePresence>
+            {swipeDirection && indicatorInfo && (
+              <SwipeIndicator
+                direction={swipeDirection}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+              >
+                <span>{indicatorInfo.icon}</span>
+                <span>{indicatorInfo.text}</span>
+              </SwipeIndicator>
+            )}
+          </AnimatePresence>
+
+          {/* Desktop navigation areas */}
+          {!isMobile && (
+            <>
+              <NavigationArea
+                position="top"
+                onMouseEnter={() => setShowTopNav(true)}
+                onMouseLeave={() => setShowTopNav(false)}
+              >
+                <AnimatePresence>
+                  {showTopNav && (
+                    <>
+                      {hasPrevious ? (
+                        <NavigationButton
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={navigateToPrevious}
+                        >
+                          ↑
+                        </NavigationButton>
+                      ) : (
+                        <AddSubtaskButton
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={onAddSubtask}
+                          title="Add subtask above"
+                        >
+                          +
+                        </AddSubtaskButton>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </AnimatePresence>
-          </NavigationArea>
+                </AnimatePresence>
+              </NavigationArea>
+
+              <NavigationArea
+                position="bottom"
+                onMouseEnter={() => setShowBottomNav(true)}
+                onMouseLeave={() => setShowBottomNav(false)}
+              >
+                <AnimatePresence>
+                  {showBottomNav && (
+                    <>
+                      {hasNext ? (
+                        <NavigationButton
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={navigateToNext}
+                        >
+                          ↓
+                        </NavigationButton>
+                      ) : (
+                        <AddSubtaskButton
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={onAddSubtask}
+                          title="Add subtask below"
+                        >
+                          +
+                        </AddSubtaskButton>
+                      )}
+                    </>
+                  )}
+                </AnimatePresence>
+              </NavigationArea>
+            </>
+          )}
 
           <AnimatePresence mode="wait">
             {currentSubtask ? (
-              <div style={{ position: 'relative' }}>
+              <motion.div
+                animate={{
+                  x: dragX * 0.3,
+                  y: dragY * 0.3,
+                  rotateY: dragX * 0.1,
+                  scale: 1 - Math.abs(dragX) * 0.0005 - Math.abs(dragY) * 0.0005
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+                style={{ position: 'relative' }}
+              >
                 <SubtaskCard
                   key={currentSubtask.id}
                   subtask={currentSubtask}
@@ -270,7 +506,7 @@ const SubtaskView = ({
                   subtaskCount={activeSubtasks.length}
                   currentIndex={currentSubtaskIndex}
                 />
-                
+
                 {/* Future nest button (non-functional for now) */}
                 <FutureNestButton
                   initial={{ opacity: 0 }}
@@ -280,7 +516,7 @@ const SubtaskView = ({
                 >
                   →
                 </FutureNestButton>
-              </div>
+              </motion.div>
             ) : (
               <EmptyState>
                 <EmptyStateText>All subtasks completed!</EmptyStateText>
@@ -293,42 +529,6 @@ const SubtaskView = ({
               </EmptyState>
             )}
           </AnimatePresence>
-
-          {/* Bottom navigation or add button */}
-          <NavigationArea
-            position="bottom"
-            onMouseEnter={() => setShowBottomNav(true)}
-            onMouseLeave={() => setShowBottomNav(false)}
-          >
-            <AnimatePresence>
-              {showBottomNav && (
-                <>
-                  {hasNext ? (
-                    <NavigationButton
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={navigateToNext}
-                    >
-                      ↓
-                    </NavigationButton>
-                  ) : (
-                    <AddSubtaskButton
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={onAddSubtask}
-                      title="Add subtask below"
-                    >
-                      +
-                    </AddSubtaskButton>
-                  )}
-                </>
-              )}
-            </AnimatePresence>
-          </NavigationArea>
         </SubtaskContentWrapper>
       </SubtaskContainer>
     </ViewContainer>

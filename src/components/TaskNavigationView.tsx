@@ -79,6 +79,53 @@ const AddTaskButton = styled(motion.button)`
   border: 2px solid ${({ theme }) => theme.colors.cardBackground};
 `;
 
+// Visual swipe indicators
+const SwipeIndicator = styled(motion.div) <{ direction: 'left' | 'right' | 'up' | 'down' }>`
+  position: absolute;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  
+  ${({ direction }) => {
+        switch (direction) {
+            case 'left':
+                return `
+          right: -20px;
+          top: 50%;
+          transform: translateY(-50%);
+        `;
+            case 'right':
+                return `
+          left: -20px;
+          top: 50%;
+          transform: translateY(-50%);
+        `;
+            case 'up':
+                return `
+          bottom: -20px;
+          left: 50%;
+          transform: translateX(-50%);
+        `;
+            case 'down':
+                return `
+          top: -20px;
+          left: 50%;
+          transform: translateX(-50%);
+        `;
+        }
+    }}
+`;
+
 const TaskNavigationView = ({
     task,
     taskCount,
@@ -100,30 +147,20 @@ const TaskNavigationView = ({
     const [showTopNav, setShowTopNav] = useState(false);
     const [showBottomNav, setShowBottomNav] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
+    const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | 'up' | 'down' | null>(null);
+    const [dragX, setDragX] = useState(0);
+    const [dragY, setDragY] = useState(0);
 
     const hasPrevious = currentIndex > 0;
     const hasNext = currentIndex < taskCount - 1;
+    const hasSubtasks = task.hasSubtasks && task.subtasks && task.subtasks.length > 0;
 
-    // Detect primary input method - hover for desktop, gestures for mobile
+    // Detect primary input method
     useEffect(() => {
         const checkPrimaryInput = () => {
-            // Check if the primary pointing device can hover (fine pointer like mouse)
             const hasHoverCapability = window.matchMedia('(hover: hover)').matches;
-            // Check if the primary pointing device is coarse (like finger)
             const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-
-            // If device can hover reliably, it's probably desktop/laptop with mouse
-            // If it has coarse pointer, it's probably mobile/tablet
             const isMobileDevice = hasCoarsePointer || !hasHoverCapability;
-
-            console.log('Input detection:', {
-                hasHoverCapability,
-                hasCoarsePointer,
-                isMobileDevice,
-                screenWidth: window.innerWidth
-            });
-
             setIsMobile(isMobileDevice);
         };
 
@@ -132,201 +169,249 @@ const TaskNavigationView = ({
         return () => window.removeEventListener('resize', checkPrimaryInput);
     }, []);
 
-    // Handle pan gesture start
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handlePanStart = (_event: PointerEvent, _info: PanInfo) => {
-        setIsSwipeInProgress(true);
-        console.log('Pan start detected');
-    };
+    // Handle drag/pan during movement
+    const handleDrag = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        setDragX(info.offset.x);
+        setDragY(info.offset.y);
 
-    // Handle pan gesture during movement
-    const handlePan = (_event: PointerEvent, info: PanInfo) => {
-        if (!isSwipeInProgress) return;
+        const threshold = 30; // Minimum distance to show indicator
 
-        const deltaY = info.delta.y;
-        const deltaX = info.delta.x;
-        const threshold = 10;
-
-        // Add visual feedback for horizontal swipe
-        if (Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
-            // When swiping left, slightly rotate the card to show it's interactive
-            if (deltaX < -20) {
-                // You could add a visual state here if needed
+        // Determine swipe direction based on current offset
+        if (Math.abs(info.offset.x) > Math.abs(info.offset.y)) {
+            // Horizontal swipe
+            if (info.offset.x < -threshold) {
+                setSwipeDirection('left');
+            } else if (info.offset.x > threshold) {
+                setSwipeDirection('right');
+            } else {
+                setSwipeDirection(null);
             }
-            setShowTopNav(false);
-            setShowBottomNav(false);
-        } else if (Math.abs(deltaY) > threshold) {
-            if (deltaY < 0) {
-                setShowTopNav(true);
-                setShowBottomNav(false);
-            } else if (deltaY > 0) {
-                setShowBottomNav(true);
-                setShowTopNav(false);
+        } else {
+            // Vertical swipe
+            if (info.offset.y < -threshold) {
+                setSwipeDirection('up');
+            } else if (info.offset.y > threshold) {
+                setSwipeDirection('down');
+            } else {
+                setSwipeDirection(null);
             }
         }
     };
 
-    // Handle pan gesture end
-    const handlePanEnd = (_event: PointerEvent, info: PanInfo) => {
-        const deltaY = info.delta.y;
-        const deltaX = info.delta.x;
-        const velocityY = info.velocity.y;
-        const velocityX = info.velocity.x;
+    // Handle drag end
+    const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        const distanceThreshold = 50; // Minimum distance for action
+        const velocityThreshold = 100; // Minimum velocity for quick swipes
 
-        // Much more permissive thresholds
-        const distanceThreshold = 50; // Lower distance requirement
-        const velocityThreshold = 100; // Much lower velocity requirement
+        const absX = Math.abs(info.offset.x);
+        const absY = Math.abs(info.offset.y);
+        const absVelX = Math.abs(info.velocity.x);
+        const absVelY = Math.abs(info.velocity.y);
 
-        // Debug logging
-        console.log('Pan end:', {
-            deltaX, deltaY,
-            velocityX, velocityY,
-            distanceThreshold,
-            velocityThreshold
-        });
+        // Check if swipe meets threshold (either distance OR velocity)
+        const isValidSwipe = (distance: number, velocity: number) =>
+            distance > distanceThreshold || velocity > velocityThreshold;
 
-        // Check for horizontal swipe first (right swipe to add subtask)
-        const isSignificantHorizontalSwipe = Math.abs(deltaX) > distanceThreshold || Math.abs(velocityX) > velocityThreshold;
-        const isSignificantVerticalSwipe = Math.abs(deltaY) > distanceThreshold || Math.abs(velocityY) > velocityThreshold;
-
-        if (isSignificantHorizontalSwipe && Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Horizontal swipe takes priority
-            if (deltaX < -distanceThreshold || velocityX < -velocityThreshold) {
-                // Swiped left - add subtask
-                console.log('Left swipe detected - adding subtask');
-                if (onAddSubtask) {
+        // Determine primary direction
+        if (absX > absY) {
+            // Horizontal swipe
+            if (info.offset.x < 0 && isValidSwipe(absX, absVelX)) {
+                // Left swipe - complete task
+                onComplete();
+            } else if (info.offset.x > 0 && isValidSwipe(absX, absVelX)) {
+                // Right swipe - open subtasks or add subtask
+                if (hasSubtasks && onOpenSubtasks) {
+                    onOpenSubtasks();
+                } else if (onAddSubtask) {
                     onAddSubtask();
                 }
             }
-        } else if (isSignificantVerticalSwipe) {
+        } else {
             // Vertical swipe
-            if (deltaY < 0 || velocityY < -velocityThreshold) {
-                // Swiped up - go to previous
-                console.log('Up swipe detected - previous task');
+            if (info.offset.y < 0 && isValidSwipe(absY, absVelY)) {
+                // Up swipe
                 if (hasPrevious) {
                     onNavigatePrevious();
+                } else {
+                    onAddTask(); // Add task at top
                 }
-            } else if (deltaY > 0 || velocityY > velocityThreshold) {
-                // Swiped down - go to next
-                console.log('Down swipe detected - next task');
+            } else if (info.offset.y > 0 && isValidSwipe(absY, absVelY)) {
+                // Down swipe
                 if (hasNext) {
                     onNavigateNext();
+                } else {
+                    onAddTask(); // Add task at bottom
                 }
             }
         }
 
-        // Hide navigation after a short delay
-        setTimeout(() => {
-            setIsSwipeInProgress(false);
-            setShowTopNav(false);
-            setShowBottomNav(false);
-        }, 100);
+        // Reset state
+        setSwipeDirection(null);
+        setDragX(0);
+        setDragY(0);
+        setShowTopNav(false);
+        setShowBottomNav(false);
     };
+
+    // Get swipe indicator text
+    const getSwipeIndicatorText = () => {
+        switch (swipeDirection) {
+            case 'left':
+                return { text: 'Complete', icon: '✓' };
+            case 'right':
+                if (hasSubtasks) {
+                    return { text: 'View Subtasks', icon: '→' };
+                }
+                return { text: 'Add Subtask', icon: '+' };
+            case 'up':
+                if (hasPrevious) {
+                    return { text: 'Previous', icon: '↑' };
+                }
+                return { text: 'Add Task', icon: '+' };
+            case 'down':
+                if (hasNext) {
+                    return { text: 'Next', icon: '↓' };
+                }
+                return { text: 'Add Task', icon: '+' };
+            default:
+                return null;
+        }
+    };
+
+    const indicatorInfo = getSwipeIndicatorText();
+
     return (
         <NavigationContainer>
             <TaskContentWrapper
                 drag
-                dragConstraints={{ top: 0, bottom: 0, left: -80, right: 0 }}
-                dragElastic={{ left: 0.3, right: 0, top: 0.2, bottom: 0.2 }}
+                dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                dragElastic={0.2}
                 dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
-                onPanStart={handlePanStart}
-                onPan={handlePan}
-                onPanEnd={handlePanEnd}
+                onDrag={handleDrag}
+                onDragEnd={handleDragEnd}
+                animate={{ x: 0, y: 0 }}
                 style={{ touchAction: 'none' }}
             >
-                {/* Top navigation area */}
-                <NavigationArea
-                    position="top"
-                    isMobile={isMobile}
-                    // Always add mouse events for hover capability
-                    onMouseEnter={() => setShowTopNav(true)}
-                    onMouseLeave={() => setShowTopNav(false)}
-                >
-                    <AnimatePresence>
-                        {(showTopNav || (isMobile && isSwipeInProgress && showTopNav)) && (
-                            <>
-                                {hasPrevious ? (
-                                    <NavigationButton
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={onNavigatePrevious}
-                                        title="Previous task"
-                                    >
-                                        ↑
-                                    </NavigationButton>
-                                ) : (
-                                    <AddTaskButton
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={onAddTask}
-                                        title="Add task above"
-                                    >
-                                        +
-                                    </AddTaskButton>
-                                )}
-                            </>
-                        )}
-                    </AnimatePresence>
-                </NavigationArea>
+                {/* Swipe indicators */}
+                <AnimatePresence>
+                    {swipeDirection && indicatorInfo && (
+                        <SwipeIndicator
+                            direction={swipeDirection}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                        >
+                            <span>{indicatorInfo.icon}</span>
+                            <span>{indicatorInfo.text}</span>
+                        </SwipeIndicator>
+                    )}
+                </AnimatePresence>
+
+                {/* Top navigation area for desktop */}
+                {!isMobile && (
+                    <NavigationArea
+                        position="top"
+                        isMobile={isMobile}
+                        onMouseEnter={() => setShowTopNav(true)}
+                        onMouseLeave={() => setShowTopNav(false)}
+                    >
+                        <AnimatePresence>
+                            {showTopNav && (
+                                <>
+                                    {hasPrevious ? (
+                                        <NavigationButton
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={onNavigatePrevious}
+                                            title="Previous task"
+                                        >
+                                            ↑
+                                        </NavigationButton>
+                                    ) : (
+                                        <AddTaskButton
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={onAddTask}
+                                            title="Add task above"
+                                        >
+                                            +
+                                        </AddTaskButton>
+                                    )}
+                                </>
+                            )}
+                        </AnimatePresence>
+                    </NavigationArea>
+                )}
 
                 {/* Main task card */}
-                <TaskCard
-                    task={task}
-                    taskCount={taskCount}
-                    onComplete={onComplete}
-                    onDismiss={onDismiss}
-                    onSnooze={onSnooze}
-                    isShuffling={isShuffling}
-                    simplifyMode={simplifyMode}
-                    pomodoroActive={pomodoroActive}
-                    pomodoroEndTime={pomodoroEndTime}
-                    onPomodoroComplete={onPomodoroComplete}
-                    onOpenSubtasks={onOpenSubtasks}
-                    onAddSubtask={onAddSubtask}
-                />
-
-                {/* Bottom navigation area */}
-                <NavigationArea
-                    position="bottom"
-                    isMobile={isMobile}
-                    // Always add mouse events for hover capability
-                    onMouseEnter={() => setShowBottomNav(true)}
-                    onMouseLeave={() => setShowBottomNav(false)}
+                <motion.div
+                    animate={{
+                        x: dragX * 0.3, // Subtle visual feedback during drag
+                        y: dragY * 0.3,
+                        rotateY: dragX * 0.1, // Slight 3D rotation on horizontal swipe
+                        scale: 1 - Math.abs(dragX) * 0.0005 - Math.abs(dragY) * 0.0005
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
-                    <AnimatePresence>
-                        {(showBottomNav || (isMobile && isSwipeInProgress && showBottomNav)) && (
-                            <>
-                                {hasNext ? (
-                                    <NavigationButton
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={onNavigateNext}
-                                        title="Next task"
-                                    >
-                                        ↓
-                                    </NavigationButton>
-                                ) : (
-                                    <AddTaskButton
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={onAddTask}
-                                        title="Add task below"
-                                    >
-                                        +
-                                    </AddTaskButton>
-                                )}
-                            </>
-                        )}
-                    </AnimatePresence>
-                </NavigationArea>
+                    <TaskCard
+                        task={task}
+                        taskCount={taskCount}
+                        onComplete={onComplete}
+                        onDismiss={onDismiss}
+                        onSnooze={onSnooze}
+                        isShuffling={isShuffling}
+                        simplifyMode={simplifyMode}
+                        pomodoroActive={pomodoroActive}
+                        pomodoroEndTime={pomodoroEndTime}
+                        onPomodoroComplete={onPomodoroComplete}
+                        onOpenSubtasks={onOpenSubtasks}
+                        onAddSubtask={onAddSubtask}
+                    />
+                </motion.div>
+
+                {/* Bottom navigation area for desktop */}
+                {!isMobile && (
+                    <NavigationArea
+                        position="bottom"
+                        isMobile={isMobile}
+                        onMouseEnter={() => setShowBottomNav(true)}
+                        onMouseLeave={() => setShowBottomNav(false)}
+                    >
+                        <AnimatePresence>
+                            {showBottomNav && (
+                                <>
+                                    {hasNext ? (
+                                        <NavigationButton
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={onNavigateNext}
+                                            title="Next task"
+                                        >
+                                            ↓
+                                        </NavigationButton>
+                                    ) : (
+                                        <AddTaskButton
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={onAddTask}
+                                            title="Add task below"
+                                        >
+                                            +
+                                        </AddTaskButton>
+                                    )}
+                                </>
+                            )}
+                        </AnimatePresence>
+                    </NavigationArea>
+                )}
             </TaskContentWrapper>
         </NavigationContainer>
     );

@@ -408,12 +408,11 @@ const navigateToPrevious = useCallback(() => {
 
 const navigateToNext = useCallback(() => {
   setCurrentTaskIndex(prevIndex => {
-    if (prevIndex < tasks.length - 1) {
-      return prevIndex + 1;
-    }
-    return prevIndex;
+    // Note: Don't use tasks.length here as it's the filtered list
+    // The currentTaskIndex management should be handled by the component using this hook
+    return prevIndex + 1;
   });
-}, [tasks.length]);
+}, []);
 
   return {
     tasks,

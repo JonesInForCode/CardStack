@@ -25,7 +25,7 @@ import { ANIMATION_DURATION } from './constants';
 import { type Category, type PartialTask, getCategoryEmoji } from './types/Task';
 
 // Get the app version from package.json
-const APP_VERSION = '1.5.7'; // This should match your package.json version
+const APP_VERSION = '1.5.8'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -100,7 +100,6 @@ const App = () => {
   const {
     tasks: allTasks,
     completedTasks,
-    currentTask: hookCurrentTask,
     currentTaskIndex,
     isLoading,
     snoozedTasks,
@@ -161,18 +160,17 @@ const App = () => {
   // Get visible tasks (tasks that aren't snoozed)
   const tasks = filteredTasks.filter(task => !task.snoozedUntil || task.snoozedUntil <= new Date());
 
+  // Get the current filtered index (ensure it's within bounds)
+  const currentFilteredIndex = Math.min(currentTaskIndex, Math.max(0, tasks.length - 1));
+
+  // Override hookCurrentTask with the filtered task when in deck view
+  const currentTask = tasks.length > 0 ? tasks[currentFilteredIndex] : null;
+
   // Update currentTaskIndex when selected category changes
   useEffect(() => {
-    if (selectedCategory) {
-      // When a category is selected, find the first task with that category
-      const firstTaskIndex = allTasks.findIndex(
-        task => task.category === selectedCategory && (!task.snoozedUntil || task.snoozedUntil <= new Date())
-      );
-      if (firstTaskIndex !== -1) {
-        setCurrentTaskIndex(firstTaskIndex);
-      }
-    }
-  }, [selectedCategory, allTasks, setCurrentTaskIndex]);
+    // Reset to first task when category changes
+    setCurrentTaskIndex(0);
+  }, [selectedCategory, setCurrentTaskIndex]);
 
   // Handle shuffle with animation
   const handleShuffle = () => {
@@ -192,8 +190,8 @@ const App = () => {
   };
 
   const handleAddSubtask = (subtask: PartialTask) => {
-    if (hookCurrentTask) {
-      addSubtask(hookCurrentTask.id, subtask);
+    if (currentTask) {  // Changed from hookCurrentTask
+      addSubtask(currentTask.id, subtask);
     }
   };
 
@@ -312,14 +310,14 @@ const App = () => {
       />
 
       <MainContent>
-        {showSubtasks && hookCurrentTask && hookCurrentTask.subtasks ? (
+        {showSubtasks && currentTask && currentTask.subtasks ? (
           <SubtaskView
-            parentTask={hookCurrentTask}
-            subtasks={hookCurrentTask.subtasks}
-            onSubtaskComplete={(subtaskId) => completeSubtask(hookCurrentTask.id, subtaskId)}
-            onSubtaskCancel={(subtaskId) => cancelSubtask(hookCurrentTask.id, subtaskId)}
+            parentTask={currentTask}
+            subtasks={currentTask.subtasks}
+            onSubtaskComplete={(subtaskId) => completeSubtask(currentTask.id, subtaskId)}
+            onSubtaskCancel={(subtaskId) => cancelSubtask(currentTask.id, subtaskId)}
             onUpgradeToTask={(subtaskId) => {
-              upgradeSubtaskToTask(hookCurrentTask.id, subtaskId);
+              upgradeSubtaskToTask(currentTask.id, subtaskId);
               setShowSubtasks(false);
             }}
             onClose={() => setShowSubtasks(false)}
@@ -338,12 +336,12 @@ const App = () => {
             ) : tasks.length > 0 ? (
               <>
                 <AnimatePresence mode="wait">
-                  {hookCurrentTask && (
+                  {currentTask && (
                     <TaskNavigationView
-                      key={hookCurrentTask.id}
-                      task={hookCurrentTask}
+                      key={currentTask.id}
+                      task={currentTask}
                       taskCount={tasks.length}
-                      currentIndex={currentTaskIndex}
+                      currentIndex={currentFilteredIndex}
                       onComplete={completeTask}
                       onDismiss={dismissTask}
                       onSnooze={snoozeTask}
@@ -437,9 +435,9 @@ const App = () => {
 
       {/* Modals */}
       <AnimatePresence>
-        {showAddSubtask && hookCurrentTask && (
+        {showAddSubtask && currentTask && (  // Changed from hookCurrentTask
           <AddSubtaskModal
-            parentTaskTitle={hookCurrentTask.title}
+            parentTaskTitle={currentTask.title}
             onClose={() => setShowAddSubtask(false)}
             onAddSubtask={handleAddSubtask}
           />

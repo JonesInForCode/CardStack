@@ -227,16 +227,16 @@ const TaskNavigationView = ({
                 onComplete();
             }
         } else {
-            // Vertical swipe
-            if (info.offset.y < 0 && isValidSwipe(absY, absVelY)) {
-                // Up swipe
+            // Vertical swipe (FLIPPED)
+            if (info.offset.y > 0 && isValidSwipe(absY, absVelY)) {
+                // Down swipe - go to previous (FLIPPED)
                 if (hasPrevious) {
                     onNavigatePrevious();
                 } else {
                     onAddTask(); // Add task at top
                 }
-            } else if (info.offset.y > 0 && isValidSwipe(absY, absVelY)) {
-                // Down swipe
+            } else if (info.offset.y < 0 && isValidSwipe(absY, absVelY)) {
+                // Up swipe - go to next (FLIPPED)
                 if (hasNext) {
                     onNavigateNext();
                 } else {
@@ -253,24 +253,23 @@ const TaskNavigationView = ({
         setShowBottomNav(false);
     };
 
-    // Get swipe indicator text
     const getSwipeIndicatorText = () => {
         switch (swipeDirection) {
-            case 'right':  // SWAPPED
+            case 'right':
                 return { text: 'Complete', icon: '✓' };
-            case 'left':   // SWAPPED
+            case 'left':
                 if (hasSubtasks) {
                     return { text: 'View Subtasks', icon: '←' };
                 }
                 return { text: 'Add Subtask', icon: '+' };
-            case 'up':
+            case 'down':  // FLIPPED
                 if (hasPrevious) {
-                    return { text: 'Previous', icon: '↑' };
+                    return { text: 'Previous', icon: '↓' };
                 }
                 return { text: 'Add Task', icon: '+' };
-            case 'down':
+            case 'up':    // FLIPPED
                 if (hasNext) {
-                    return { text: 'Next', icon: '↓' };
+                    return { text: 'Next', icon: '↑' };
                 }
                 return { text: 'Add Task', icon: '+' };
             default:

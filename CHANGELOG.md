@@ -2,21 +2,48 @@
 
 ## [1.5.8] - 2025-06-07
 
+### Fixes
+- Fixes and tweeks to gesture navigation
+
 ## [1.5.7] - 2025-06-07
+
+### Fixes
+- Fixes and tweeks to gesture navigation
 
 ## [1.5.6] - 2025-06-07
 
+### Fixes
+- Fixes and tweeks to gesture navigation
+
 ## [1.5.5] - 2025-06-06
+
+### Fixes
+- Fixes and tweeks to gesture navigation
 
 ## [1.5.4] - 2025-06-06
 
+### Fixes
+- Fixes and tweeks to gesture navigation
+
 ## [1.5.3] - 2025-06-06
+
+### Fixes
+- Fixes and tweeks to gesture navigation
 
 ## [1.5.2] - 2025-06-06
 
+### Fixes
+- Fixes and tweeks to gesture navigation
+
 ## [1.5.1] - 2025-06-06
 
+### Fixes
+- Fixes and tweeks to gesture navigation
+
 ## [1.5.0] - 2025-06-06
+
+### Added
+- **Gesture Navigation Feature Launch** - use swipe gestures on mobile to navigate
 
 ## [1.4.0] - 2025-06-03
 

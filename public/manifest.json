@@ -2,7 +2,7 @@
   "name": "CardStack",
   "short_name": "CardStack",
   "description": "Task management app designed for people with ADHD",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#4F46E5",

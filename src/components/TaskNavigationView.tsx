@@ -254,8 +254,25 @@ const TaskNavigationView = ({
     };
 
     const getSwipeIndicatorText = () => {
+        // Helper function to check for active subtasks
+        const hasActiveSubtasks = (task: Task): boolean => {
+            if (!task.hasSubtasks || !task.subtasks) return false;
+
+            return task.subtasks.some(subtask => {
+                if (!subtask.isCompleted) return true;
+                // Future-proofing: check for nested subtasks when implemented
+                if (subtask.hasSubtasks && subtask.subtasks) {
+                    return hasActiveSubtasks(subtask);
+                }
+                return false;
+            });
+        };
+
         switch (swipeDirection) {
             case 'right':
+                if (hasActiveSubtasks(task)) {
+                    return { text: 'Complete Subtasks First', icon: '⚠️' };
+                }
                 return { text: 'Complete', icon: '✓' };
             case 'left':
                 if (hasSubtasks) {

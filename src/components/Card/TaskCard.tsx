@@ -205,6 +205,7 @@ const CompleteButton = styled(motion.button)`
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+    background-color: ${({ theme }) => theme.colors.textSecondary};
   }
 `;
 
@@ -322,7 +323,7 @@ const TaskCard = ({
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
-  
+
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect if device is mobile
@@ -375,6 +376,20 @@ const TaskCard = ({
       y: rect.top
     });
     setShowContextMenu(true);
+  };
+
+  // Add this helper function
+  const hasActiveSubtasks = (task: Task): boolean => {
+    if (!task.hasSubtasks || !task.subtasks) return false;
+
+    return task.subtasks.some(subtask => {
+      if (!subtask.isCompleted) return true;
+      // Future-proofing: check for nested subtasks when implemented
+      if (subtask.hasSubtasks && subtask.subtasks) {
+        return hasActiveSubtasks(subtask);
+      }
+      return false;
+    });
   };
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
@@ -485,9 +500,10 @@ const TaskCard = ({
         <CompleteButton
           whileTap={{ scale: 0.95 }}
           onClick={onComplete}
-          disabled={isShuffling || isSnoozed}
+          disabled={isShuffling || isSnoozed || hasActiveSubtasks(task)}
+          title={hasActiveSubtasks(task) ? "Complete subtasks first" : "Complete task"}
         >
-          Complete
+          {hasActiveSubtasks(task) ? "Complete Subtasks First" : "Complete"}
         </CompleteButton>
         <DismissButton
           whileTap={{ scale: 0.95 }}

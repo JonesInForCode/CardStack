@@ -121,7 +121,7 @@ const InfoModal = ({ onClose }: InfoModalProps) => {
         <ModalTitle>About CardStack</ModalTitle>
         
         <Description>
-          CardStack is a task management application designed specifically for people with ADHD and ASD. Unlike conventional task managers, CardStack presents one task at a time as a full-screen card that demands attention.
+          CardStack is a task management application designed specifically for people with ADHD. Unlike conventional task managers, CardStack presents one task at a time as a full-screen card that demands attention.
         </Description>
         
         <KofiContainer>

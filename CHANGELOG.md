@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.10] - 2025-07-04
+
+### Fixed
+  - When on a specific deck, you could not complete a main task. 
+
 ## [1.5.9] - 2025-06-10
 
 ### Fixed

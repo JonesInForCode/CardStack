@@ -140,54 +140,62 @@ export const useTasks = () => {
   }, []);
 
   // Handle task completion - Memoized with useCallback
-  const completeTask = useCallback(() => {
-    if (!currentTask) return;
+  const completeTask = useCallback(
+    (taskId?: string) => {
+      // If no taskId provided, use the current task from the hook
+      const taskToComplete = taskId
+        ? allTasks.find((task) => task.id === taskId)
+        : currentTask;
 
-    // Check if task has active subtasks (including nested ones in the future)
-    const hasActiveSubtasks = (task: Task): boolean => {
-      if (!task.hasSubtasks || !task.subtasks) return false;
+      if (!taskToComplete) return;
 
-      return task.subtasks.some((subtask) => {
-        if (!subtask.isCompleted) return true;
-        // Future-proofing: check for nested subtasks when implemented
-        if (subtask.hasSubtasks && subtask.subtasks) {
-          return hasActiveSubtasks(subtask);
-        }
-        return false;
+      // Check if task has active subtasks (including nested ones in the future)
+      const hasActiveSubtasks = (task: Task): boolean => {
+        if (!task.hasSubtasks || !task.subtasks) return false;
+
+        return task.subtasks.some((subtask) => {
+          if (!subtask.isCompleted) return true;
+          // Future-proofing: check for nested subtasks when implemented
+          if (subtask.hasSubtasks && subtask.subtasks) {
+            return hasActiveSubtasks(subtask);
+          }
+          return false;
+        });
+      };
+
+      // Prevent completion if there are active subtasks
+      if (hasActiveSubtasks(taskToComplete)) {
+        // Add gentle haptic feedback to indicate why action was blocked
+        triggerHapticFeedback("dismiss");
+        return;
+      }
+
+      // Add haptic feedback
+      triggerHapticFeedback("complete");
+
+      const updatedTask = {
+        ...taskToComplete,
+        isCompleted: true,
+        completedDate: new Date(),
+      };
+      setCompletedTasks((prevCompletedTasks) => [
+        updatedTask,
+        ...prevCompletedTasks,
+      ]);
+
+      setAllTasks((prevTasks) => {
+        const updatedTasks = prevTasks.filter(
+          (task) => task.id !== taskToComplete.id
+        );
+        return updatedTasks;
       });
-    };
 
-    // Prevent completion if there are active subtasks
-    if (hasActiveSubtasks(currentTask)) {
-      // Add gentle haptic feedback to indicate why action was blocked
-      triggerHapticFeedback("dismiss");
-      return;
-    }
-
-    // Add haptic feedback
-    triggerHapticFeedback("complete");
-
-    const updatedTask = {
-      ...currentTask,
-      isCompleted: true,
-      completedDate: new Date(),
-    };
-    setCompletedTasks((prevCompletedTasks) => [
-      updatedTask,
-      ...prevCompletedTasks,
-    ]);
-
-    setAllTasks((prevTasks) => {
-      const updatedTasks = prevTasks.filter(
-        (task) => task.id !== currentTask.id
-      );
-      return updatedTasks;
-    });
-
-    setCurrentTaskIndex((prevIndex) => {
-      return Math.max(0, Math.min(prevIndex, tasks.length - 2)); // -2 because we're removing a task
-    });
-  }, [currentTask, tasks.length]);
+      setCurrentTaskIndex((prevIndex) => {
+        return Math.max(0, Math.min(prevIndex, tasks.length - 2)); // -2 because we're removing a task
+      });
+    },
+    [currentTask, tasks.length, allTasks]
+  );
 
   // Handle task dismissal (send to bottom of stack) - Memoized with useCallback
   const dismissTask = useCallback(() => {

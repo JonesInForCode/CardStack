@@ -25,7 +25,7 @@ import { ANIMATION_DURATION } from './constants';
 import { type Category, type PartialTask, getCategoryEmoji } from './types/Task';
 
 // Get the app version from package.json
-const APP_VERSION = '1.5.9'; // This should match your package.json version
+const APP_VERSION = '1.5.10'; // This should match your package.json version
 
 const AppContainer = styled.div`
   position: relative;
@@ -342,7 +342,7 @@ const App = () => {
                       task={currentTask}
                       taskCount={tasks.length}
                       currentIndex={currentFilteredIndex}
-                      onComplete={completeTask}
+                      onComplete={() => currentTask ? completeTask(currentTask.id) : completeTask()}
                       onDismiss={dismissTask}
                       onSnooze={snoozeTask}
                       onNavigatePrevious={() => {

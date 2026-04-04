@@ -24,8 +24,8 @@ import { useAppVersionCheck } from './utils/version';
 import { ANIMATION_DURATION } from './constants';
 import { type Category, type PartialTask, getCategoryEmoji } from './types/Task';
 
-// Get the app version from package.json
-const APP_VERSION = '1.5.10'; // This should match your package.json version
+// Get the app version from Vite define (defined in vite.config.ts)
+const APP_VERSION = __APP_VERSION__;
 
 const AppContainer = styled.div`
   position: relative;
@@ -98,8 +98,9 @@ const CategoryHeading = styled.h2`
 const App = () => {
   // Task-related state and functions from custom hook
   const {
-    tasks: allTasks,
+    tasks,
     completedTasks,
+    currentTask,
     currentTaskIndex,
     isLoading,
     snoozedTasks,
@@ -117,6 +118,9 @@ const App = () => {
     completeSubtask,
     cancelSubtask,
     upgradeSubtaskToTask,
+    selectedCategory,
+    setSelectedCategory,
+    allVisibleTasks,
   } = useTasks();
 
   // UI state
@@ -124,7 +128,6 @@ const App = () => {
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
   const [showSnoozedTasks, setShowSnoozedTasks] = useState(false);
   const [showCategoryDecks, setShowCategoryDecks] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
   const [isShuffling, setIsShuffling] = useState(false); // Track shuffle animation state
   const [simplifyMode, setSimplifyMode] = useState(false); // State for "Don't Prioritize" feature
@@ -152,26 +155,6 @@ const App = () => {
     }, 300);
   };
 
-  // Filter tasks based on the selected category
-  const filteredTasks = selectedCategory
-    ? allTasks.filter(task => task.category === selectedCategory)
-    : allTasks;
-
-  // Get visible tasks (tasks that aren't snoozed)
-  const tasks = filteredTasks.filter(task => !task.snoozedUntil || task.snoozedUntil <= new Date());
-
-  // Get the current filtered index (ensure it's within bounds)
-  const currentFilteredIndex = Math.min(currentTaskIndex, Math.max(0, tasks.length - 1));
-
-  // Override hookCurrentTask with the filtered task when in deck view
-  const currentTask = tasks.length > 0 ? tasks[currentFilteredIndex] : null;
-
-  // Update currentTaskIndex when selected category changes
-  useEffect(() => {
-    // Reset to first task when category changes
-    setCurrentTaskIndex(0);
-  }, [selectedCategory, setCurrentTaskIndex]);
-
   // Handle shuffle with animation
   const handleShuffle = () => {
     if (tasks.length <= 1) return; // Don't shuffle if not enough tasks
@@ -190,7 +173,7 @@ const App = () => {
   };
 
   const handleAddSubtask = (subtask: PartialTask) => {
-    if (currentTask) {  // Changed from hookCurrentTask
+    if (currentTask) {
       addSubtask(currentTask.id, subtask);
     }
   };
@@ -341,7 +324,7 @@ const App = () => {
                       key={currentTask.id}
                       task={currentTask}
                       taskCount={tasks.length}
-                      currentIndex={currentFilteredIndex}
+                      currentIndex={currentTaskIndex}
                       onComplete={() => currentTask ? completeTask(currentTask.id) : completeTask()}
                       onDismiss={dismissTask}
                       onSnooze={snoozeTask}
@@ -435,7 +418,7 @@ const App = () => {
 
       {/* Modals */}
       <AnimatePresence>
-        {showAddSubtask && currentTask && (  // Changed from hookCurrentTask
+        {showAddSubtask && currentTask && (
           <AddSubtaskModal
             parentTaskTitle={currentTask.title}
             onClose={() => setShowAddSubtask(false)}
@@ -472,7 +455,7 @@ const App = () => {
 
         {showCategoryDecks && (
           <CategoryDecksDrawer
-            tasks={allTasks.filter(task => !task.snoozedUntil || task.snoozedUntil <= new Date())}
+            tasks={allVisibleTasks}
             onClose={() => setShowCategoryDecks(false)}
             onSelectCategory={handleSelectCategory}
             selectedCategory={selectedCategory}

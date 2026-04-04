@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   type Task,
   type PartialTask,
   Priorities,
   Categories,
+  hasActiveSubtasks,
 } from "../types/Task";
 import {
   loadTasks,
@@ -57,20 +58,44 @@ export const useTasks = () => {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [now, setNow] = useState(new Date());
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Timer for checking snoozed tasks
   const snoozeCheckTimerRef = useRef<number | null>(null);
 
-  // Get visible tasks (tasks that aren't snoozed)
-  const tasks = allTasks.filter(
-    (task) => !task.snoozedUntil || task.snoozedUntil <= new Date()
-  );
+  // Get all visible tasks (tasks that aren't snoozed) - Memoized
+  const allVisibleTasks = useMemo(() => {
+    return allTasks.filter(
+      (task) => !task.snoozedUntil || task.snoozedUntil <= now
+    );
+  }, [allTasks, now]);
 
-  // Get current task
-  const currentTask =
-    tasks.length > 0
-      ? tasks[Math.min(currentTaskIndex, tasks.length - 1)]
-      : null;
+  // Get filtered tasks based on selected category - Memoized
+  const tasks = useMemo(() => {
+    if (!selectedCategory) return allVisibleTasks;
+    return allVisibleTasks.filter(task => task.category === selectedCategory);
+  }, [allVisibleTasks, selectedCategory]);
+
+  // Reset currentTaskIndex when category changes
+  useEffect(() => {
+    setCurrentTaskIndex(0);
+  }, [selectedCategory]);
+
+  // Get snoozed tasks - Memoized
+  const snoozedTasks = useMemo(() => {
+    return allTasks.filter(
+      (task) => task.snoozedUntil && task.snoozedUntil > now
+    );
+  }, [allTasks, now]);
+
+  const snoozedTasksCount = snoozedTasks.length;
+
+  // Get current task - Memoized
+  const currentTask = useMemo(() => {
+    if (tasks.length === 0) return null;
+    return tasks[Math.min(currentTaskIndex, tasks.length - 1)];
+  }, [tasks, currentTaskIndex]);
 
   // Load tasks from localStorage on initial render
   useEffect(() => {
@@ -106,12 +131,13 @@ export const useTasks = () => {
   useEffect(() => {
     // Function to check for tasks that should return from being snoozed
     const checkSnoozedTasks = () => {
-      const now = new Date();
+      const currentTime = new Date();
+      setNow(currentTime);
       let taskReturned = false;
 
       setAllTasks((prevTasks) => {
         const updatedTasks = prevTasks.map((task) => {
-          if (task.snoozedUntil && task.snoozedUntil <= now) {
+          if (task.id && task.snoozedUntil && task.snoozedUntil <= currentTime) {
             // Task's snooze time has elapsed, remove the snoozedUntil property
             taskReturned = true;
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -148,20 +174,6 @@ export const useTasks = () => {
         : currentTask;
 
       if (!taskToComplete) return;
-
-      // Check if task has active subtasks (including nested ones in the future)
-      const hasActiveSubtasks = (task: Task): boolean => {
-        if (!task.hasSubtasks || !task.subtasks) return false;
-
-        return task.subtasks.some((subtask) => {
-          if (!subtask.isCompleted) return true;
-          // Future-proofing: check for nested subtasks when implemented
-          if (subtask.hasSubtasks && subtask.subtasks) {
-            return hasActiveSubtasks(subtask);
-          }
-          return false;
-        });
-      };
 
       // Prevent completion if there are active subtasks
       if (hasActiveSubtasks(taskToComplete)) {
@@ -335,8 +347,8 @@ export const useTasks = () => {
     triggerHapticFeedback("shuffle");
 
     setAllTasks((prevTasks) => {
-      // Make a copy of the array
-      const shuffledTasks = [...prevTasks];
+      // Create a copy of the filtered tasks to shuffle
+      const shuffledTasks = [...tasks];
 
       // Fisher-Yates shuffle algorithm
       for (let i = shuffledTasks.length - 1; i > 0; i--) {
@@ -347,19 +359,17 @@ export const useTasks = () => {
         ];
       }
 
-      return shuffledTasks;
+      // Merge shuffled tasks back into the full task list
+      // We want to replace the visible tasks in their positions or just put them at the front
+      // Given the "stack" nature, putting them at the front of allTasks (that aren't snoozed) is sensible
+      const otherTasks = prevTasks.filter(t => !tasks.some(visible => visible.id === t.id));
+      
+      return [...shuffledTasks, ...otherTasks];
     });
 
     // Reset to the first task in the newly shuffled deck
     setCurrentTaskIndex(0);
-  }, [tasks.length]);
-
-  // Get snoozed tasks
-  const snoozedTasks = allTasks.filter(
-    (task) => task.snoozedUntil && task.snoozedUntil > new Date()
-  );
-
-  const snoozedTasksCount = snoozedTasks.length;
+  }, [tasks]);
 
   // Unsnooze a task (remove its snoozedUntil property)
   const unsnoozeTask = useCallback((taskId: string) => {
@@ -492,11 +502,12 @@ export const useTasks = () => {
 
   const navigateToNext = useCallback(() => {
     setCurrentTaskIndex((prevIndex) => {
-      // Note: Don't use tasks.length here as it's the filtered list
-      // The currentTaskIndex management should be handled by the component using this hook
-      return prevIndex + 1;
+      if (prevIndex < tasks.length - 1) {
+        return prevIndex + 1;
+      }
+      return prevIndex;
     });
-  }, []);
+  }, [tasks.length]);
 
   return {
     tasks,
@@ -521,5 +532,8 @@ export const useTasks = () => {
     upgradeSubtaskToTask,
     navigateToPrevious,
     navigateToNext,
+    selectedCategory,
+    setSelectedCategory,
+    allVisibleTasks,
   };
 };

@@ -63,3 +63,43 @@ export const getCategoryEmoji = (category: Category): string => {
       return '📝';
   }
 };
+
+/**
+ * Checks if a task has any active (incomplete) subtasks.
+ * Recursively checks subtasks if nested subtasks are implemented in the future.
+ */
+export const hasActiveSubtasks = (task: Task): boolean => {
+  if (!task.hasSubtasks || !task.subtasks || task.subtasks.length === 0) {
+    return false;
+  }
+
+  return task.subtasks.some((subtask) => {
+    if (!subtask.isCompleted) return true;
+    
+    // Recursive check for nested subtasks
+    if (subtask.hasSubtasks && subtask.subtasks) {
+      return hasActiveSubtasks(subtask);
+    }
+    
+    return false;
+  });
+};
+
+/**
+ * Recursively converts string dates in a task and its subtasks back to Date objects.
+ * This is used when loading tasks from localStorage.
+ */
+export const hydrateTaskDates = (task: Task): Task => {
+  const hydratedTask = {
+    ...task,
+    dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+    completedDate: task.completedDate ? new Date(task.completedDate) : undefined,
+    snoozedUntil: task.snoozedUntil ? new Date(task.snoozedUntil) : undefined,
+  };
+
+  if (hydratedTask.subtasks && hydratedTask.subtasks.length > 0) {
+    hydratedTask.subtasks = hydratedTask.subtasks.map(hydrateTaskDates);
+  }
+
+  return hydratedTask;
+};

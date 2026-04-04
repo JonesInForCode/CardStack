@@ -1,4 +1,4 @@
-import type { Task } from '../types/Task';
+import { type Task, hydrateTaskDates } from '../types/Task';
 
 // Keys for localStorage
 const TASKS_STORAGE_KEY = 'cardstack_tasks';
@@ -17,13 +17,8 @@ export const loadTasks = (initialTasks: Task[] = []): Task[] => {
       // Parse the saved tasks
       const parsed = JSON.parse(savedTasks);
       
-      // Convert string dates back to Date objects
-      return parsed.map((task: Task) => ({
-        ...task,
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-        completedDate: task.completedDate ? new Date(task.completedDate) : undefined,
-        snoozedUntil: task.snoozedUntil ? new Date(task.snoozedUntil) : undefined,
-      }));
+      // Convert string dates back to Date objects recursively
+      return (parsed as Task[]).map(hydrateTaskDates);
     } catch (e) {
       console.error("Failed to parse tasks from localStorage", e);
       return initialTasks;
@@ -45,13 +40,8 @@ export const loadCompletedTasks = (): Task[] => {
       // Parse the saved tasks
       const parsed = JSON.parse(savedTasks);
       
-      // Convert string dates back to Date objects
-      return parsed.map((task: Task) => ({
-        ...task,
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-        completedDate: task.completedDate ? new Date(task.completedDate) : undefined,
-        snoozedUntil: task.snoozedUntil ? new Date(task.snoozedUntil) : undefined,
-      }));
+      // Convert string dates back to Date objects recursively
+      return (parsed as Task[]).map(hydrateTaskDates);
     } catch (e) {
       console.error("Failed to parse completed tasks from localStorage", e);
       return [];

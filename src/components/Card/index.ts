@@ -1,3 +1,2 @@
-// Components/Card/index.ts
-import TaskCard from './TaskCard';
-export default TaskCard;
+export { default as TaskCard } from './TaskCard';
+export { default as SubtaskCard } from './SubtaskCard';

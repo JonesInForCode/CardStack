@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { type Task, type Priority, type Category } from '../../types/Task';
+import { type Task, type Priority, getCategoryEmoji, hasActiveSubtasks } from '../../types/Task';
 import { useTheme } from '../../context/ThemeContext';
 import PomodoroTimer from '../PomodoroTimer';
 import { useState } from 'react';
@@ -82,22 +82,6 @@ const getSimplifiedColor = (taskId: string, isDarkMode: boolean) => {
   const colorArray = isDarkMode ? getDarkSimplifiedColors() : getLightSimplifiedColors();
   const colorIndex = numericValue % colorArray.length;
   return colorArray[colorIndex];
-};
-
-// Get emoji for category
-const getCategoryEmoji = (category: Category): string => {
-  switch (category) {
-    case 'work':
-      return '💼';
-    case 'personal':
-      return '🏠';
-    case 'errands':
-      return '🛒';
-    case 'other':
-      return '📌';
-    default:
-      return '📝';
-  }
 };
 
 // Format the snooze until time in a user-friendly way
@@ -378,19 +362,6 @@ const TaskCard = ({
     setShowContextMenu(true);
   };
 
-  // Add this helper function
-  const hasActiveSubtasks = (task: Task): boolean => {
-    if (!task.hasSubtasks || !task.subtasks) return false;
-
-    return task.subtasks.some(subtask => {
-      if (!subtask.isCompleted) return true;
-      // Future-proofing: check for nested subtasks when implemented
-      if (subtask.hasSubtasks && subtask.subtasks) {
-        return hasActiveSubtasks(subtask);
-      }
-      return false;
-    });
-  };
   // Different animations based on whether we're shuffling or just showing a card
   const cardVariants = {
     initial: isShuffling

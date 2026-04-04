@@ -10,6 +10,14 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
+interface WindowWithMSStream extends Window {
+  MSStream?: unknown;
+}
+
 const InstallContainer = styled(motion.div)`
   position: fixed;
   bottom: 80px; // Above the Footer
@@ -68,7 +76,7 @@ const PWAInstall: React.FC = () => {
 
   useEffect(() => {
     // Check if it's iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as WindowWithMSStream).MSStream;
     setIsIOS(isIOSDevice);
 
     // For non-iOS devices, listen for the beforeinstallprompt event
@@ -96,7 +104,7 @@ const PWAInstall: React.FC = () => {
     } else {
       // For iOS, check if the app is in standalone mode
       // navigator.standalone is only available in Safari iOS
-      const isInStandaloneMode = (window.navigator as any).standalone === true;
+      const isInStandaloneMode = (window.navigator as NavigatorWithStandalone).standalone === true;
       
       // Show the iOS install prompt if not in standalone mode
       // and if the user hasn't dismissed it before

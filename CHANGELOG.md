@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.11] - 2026-04-04
+
+### Changed
+- **Refactoring & Maintainability** - Major codebase cleanup and optimization
+  - Moved task filtering and category logic into the `useTasks` hook for better separation of concerns
+  - Optimized performance using `useMemo` for derived states and a timed `now` state
+  - Consolidated utility functions (emojis, subtask checks) into `Task.ts`
+  - Automated versioning using Vite's `define` property
+
+### Fixed
+- **Subtask Date Hydration** - Fixed a bug where dates in subtasks would fail to hydrate correctly from storage
+- **Shuffle Logic** - Shuffling now respects the currently active deck/category
+- **Type Safety** - Replaced several `any` casts with proper TypeScript interfaces
+
 ## [1.5.10] - 2025-07-04
 
 ### Fixed

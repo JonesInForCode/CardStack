@@ -1,9 +1,10 @@
 // src/components/TaskNavigationView.tsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task } from '../types/Task';
 import TaskCard from './Card/TaskCard';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface TaskNavigationViewProps {
     task: Task;
@@ -146,7 +147,7 @@ const TaskNavigationView = ({
 }: TaskNavigationViewProps) => {
     const [showTopNav, setShowTopNav] = useState(false);
     const [showBottomNav, setShowBottomNav] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
+    const isMobile = useIsMobile();
     const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | 'up' | 'down' | null>(null);
     const [dragX, setDragX] = useState(0);
     const [dragY, setDragY] = useState(0);
@@ -154,20 +155,6 @@ const TaskNavigationView = ({
     const hasPrevious = currentIndex > 0;
     const hasNext = currentIndex < taskCount - 1;
     const hasSubtasks = task.hasSubtasks && task.subtasks && task.subtasks.length > 0;
-
-    // Detect primary input method
-    useEffect(() => {
-        const checkPrimaryInput = () => {
-            const hasHoverCapability = window.matchMedia('(hover: hover)').matches;
-            const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-            const isMobileDevice = hasCoarsePointer || !hasHoverCapability;
-            setIsMobile(isMobileDevice);
-        };
-
-        checkPrimaryInput();
-        window.addEventListener('resize', checkPrimaryInput);
-        return () => window.removeEventListener('resize', checkPrimaryInput);
-    }, []);
 
     // Handle drag/pan during movement
     const handleDrag = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {

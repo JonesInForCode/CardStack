@@ -1,0 +1,4 @@
+# Summary of Changes: `src/context/ThemeContext.tsx`
+
+*   **Refactored Context Creation**: Extracted `ThemeContext`, `ThemeMode`, `ThemeContextType`, and `useTheme` into a new file, `src/context/ThemeContextCore.ts`. This resolves an ESLint warning (`react-refresh/only-export-components`), which complains when a single file exports both a React component (like `ThemeProvider`) and regular functions/constants.
+*   **Kept `ThemeProvider` in `ThemeContext.tsx`**: By separating the React component from the React context hook, fast-refresh works optimally. Components like `TaskCard` and `DarkModeToggle` were updated to import `useTheme` from `ThemeContextCore`.

@@ -1,7 +1,7 @@
 // src/components/DarkModeToggle.tsx
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContextCore';
 
 interface DarkModeToggleProps {
   className?: string;

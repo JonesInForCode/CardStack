@@ -1,12 +1,12 @@
 // src/components/Card/TaskCard.tsx - Properly using styled-components
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
 import { type Task, type Priority, getCategoryEmoji, hasActiveSubtasks } from '../../types/Task';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContextCore';
 import PomodoroTimer from '../PomodoroTimer';
 import { useState } from 'react';
 import ContextMenu from '../ContextMenu';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface TaskCardProps {
   task: Task;
@@ -307,21 +307,7 @@ const TaskCard = ({
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
-
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect if device is mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-      const isSmallScreen = window.innerWidth <= 768;
-      setIsMobile(hasCoarsePointer || isSmallScreen);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   const handleSubtaskBadgeClick = (e: React.MouseEvent) => {
     e.preventDefault();

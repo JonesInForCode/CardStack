@@ -117,7 +117,8 @@ const AddSubtaskModal = ({ parentTaskTitle, onClose, onAddSubtask }: AddSubtaskM
     description: '',
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!newSubtask.title) return;
     
     onAddSubtask(newSubtask);
@@ -144,7 +145,8 @@ const AddSubtaskModal = ({ parentTaskTitle, onClose, onAddSubtask }: AddSubtaskM
           Adding subtask to: <strong>{parentTaskTitle}</strong>
         </ParentInfo>
         
-        <FormField>
+        <form onSubmit={handleSubmit}>
+          <FormField>
           <Label>Subtask Title</Label>
           <Input
             type="text"
@@ -165,20 +167,22 @@ const AddSubtaskModal = ({ parentTaskTitle, onClose, onAddSubtask }: AddSubtaskM
           />
         </FormField>
         
-        <ButtonContainer>
-          <CancelButton
-            whileTap={{ scale: 0.95 }}
-            onClick={onClose}
-          >
-            Cancel
-          </CancelButton>
-          <AddButton
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSubmit}
-          >
-            Add Subtask
-          </AddButton>
-        </ButtonContainer>
+          <ButtonContainer>
+            <CancelButton
+              type="button"
+              whileTap={{ scale: 0.95 }}
+              onClick={onClose}
+            >
+              Cancel
+            </CancelButton>
+            <AddButton
+              type="submit"
+              whileTap={{ scale: 0.95 }}
+            >
+              Add Subtask
+            </AddButton>
+          </ButtonContainer>
+        </form>
       </ModalContent>
     </ModalOverlay>
   );

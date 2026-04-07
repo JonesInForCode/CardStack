@@ -132,7 +132,8 @@ const AddTaskModal = ({ onClose, onAddTask }: AddTaskModalProps) => {
     isCompleted: false,
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!newTask.title) return;
     
     onAddTask(newTask);
@@ -158,7 +159,8 @@ const AddTaskModal = ({ onClose, onAddTask }: AddTaskModalProps) => {
       >
         <ModalTitle>Add New Task</ModalTitle>
         
-        <FormField>
+        <form onSubmit={handleSubmit}>
+          <FormField>
           <Label>Title</Label>
           <Input
             type="text"
@@ -204,20 +206,22 @@ const AddTaskModal = ({ onClose, onAddTask }: AddTaskModalProps) => {
           </FormField>
         </FormGrid>
         
-        <ButtonContainer>
-          <CancelButton
-            whileTap={{ scale: 0.95 }}
-            onClick={onClose}
-          >
-            Cancel
-          </CancelButton>
-          <AddButton
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSubmit}
-          >
-            Add Task
-          </AddButton>
-        </ButtonContainer>
+          <ButtonContainer>
+            <CancelButton
+              type="button"
+              whileTap={{ scale: 0.95 }}
+              onClick={onClose}
+            >
+              Cancel
+            </CancelButton>
+            <AddButton
+              type="submit"
+              whileTap={{ scale: 0.95 }}
+            >
+              Add Task
+            </AddButton>
+          </ButtonContainer>
+        </form>
       </ModalContent>
     </ModalOverlay>
   );

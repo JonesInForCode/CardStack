@@ -1,23 +1,8 @@
 // src/context/ThemeContext.tsx
-import { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { lightTheme, darkTheme } from '../styles/theme';
-
-type ThemeMode = 'light' | 'dark';
-
-interface ThemeContextType {
-  themeMode: ThemeMode;
-  toggleTheme: () => void;
-}
-
-// Create the context with a default value
-const ThemeContext = createContext<ThemeContextType>({
-  themeMode: 'light',
-  toggleTheme: () => {},
-});
-
-// Custom hook to use the theme context
-export const useTheme = () => useContext(ThemeContext);
+import { ThemeContext, type ThemeMode } from './ThemeContextCore';
 
 interface ThemeProviderProps {
   children: ReactNode;
